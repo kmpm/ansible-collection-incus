@@ -21,7 +21,7 @@ DOCUMENTATION = r'''
         plugin:
             description: Token that ensures this is a source file for the 'incus' plugin.
             required: true
-            choices: [ 'community.general.incus' ]
+            choices: [ 'kmpm.general.incus' ]
         url:
             description:
             - The unix domain socket path or the https URL for the incus server.
@@ -108,16 +108,16 @@ DOCUMENTATION = r'''
 
 EXAMPLES = '''
 # simple incus.yml
-plugin: community.general.incus
+plugin: kmpm.general.incus
 url: unix:/var/lib/incus/unix.socket
 
 # simple incus.yml including filter
-plugin: community.general.incus
+plugin: kmpm.general.incus
 url: unix:/var/lib/incus/unix.socket
 state: RUNNING
 
 # simple incus.yml including virtual machines and containers
-plugin: community.general.incus
+plugin: kmpm.general.incus
 url: unix:/var/lib/incus/unix.socket
 type_filter: both
 
@@ -295,7 +295,7 @@ class InventoryModule(BaseInventoryPlugin):
         Returns:
             None"""
         error_storage = {}
-        url_list = [self.get_option('url'), self.SNAP_SOCKET_URL, self.SOCKET_URL]
+        url_list = [self.get_option('url'), self.SOCKET_URL]
         urls = (url for url in url_list if self.validate_url(url))
         for url in urls:
             try:
@@ -666,8 +666,12 @@ class InventoryModule(BaseInventoryPlugin):
                             ip_address = config['address']
                             break
             return ip_address
-
-        if self._get_data_entry('inventory/{0}/network_interfaces'.format(instance_name)):  # instance have network interfaces
+        
+        
+        
+        if self._get_data_entry('inventory/{0}/type'.format(instance_name)) == 'container':
+            self.inventory.set_variable(instance_name, 'ansible_connection', 'incus')
+        elif self._get_data_entry('inventory/{0}/network_interfaces'.format(instance_name)):  # instance have network interfaces
             self.inventory.set_variable(instance_name, 'ansible_connection', 'ssh')
             self.inventory.set_variable(instance_name, 'ansible_host', interface_selection(instance_name))
         else:
