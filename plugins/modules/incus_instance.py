@@ -17,7 +17,7 @@ description:
   - Management of Incus containers and virtual machines.
 author: "Hiroaki Nakamura (@hnakamur)"
 extends_documentation_fragment:
-  - kmpm.general.attributes
+  - kmpm.linuxcontainers.attributes
 attributes:
     check_mode:
         support: full
@@ -60,7 +60,7 @@ options:
           - If set to V(true), options starting with C(volatile.) are ignored. As a result,
             they are reapplied for each execution.
           - This default behavior can be changed by setting this option to V(false).
-          - The default value changed from V(true) to V(false) in community.general 6.0.0.
+          - The default value changed from V(true) to V(false) in kmpm.linuxcontainers 6.0.0.
         type: bool
         required: false
         default: false
@@ -194,7 +194,7 @@ notes:
     be done with the command module.
   - You can copy a file from the host to the instance
     with the Ansible M(ansible.builtin.copy) and M(ansible.builtin.template) module
-    and the P(community.general.incus#connection) connection plugin.
+    and the P(kmpm.linuxcontainers.incus#connection) connection plugin.
     See the example below.
   - You can copy a file in the created instance to the localhost
     with C(command=lxc file pull instance_name/dir/filename filename).
@@ -207,7 +207,7 @@ EXAMPLES = '''
   connection: local
   tasks:
     - name: Create a started container
-      community.general.incus_instance:
+      kmpm.linuxcontainers.incus_instance:
         name: mycontainer
         ignore_volatile_options: true
         state: started
@@ -215,7 +215,7 @@ EXAMPLES = '''
           type: image
           mode: pull
           server: https://images.linuxcontainers.org
-          protocol: simplestreams
+          protocol: simplestreams 
           alias: debian/12
         profiles: ["default"]
         wait_for_ipv4_addresses: true
@@ -241,7 +241,7 @@ EXAMPLES = '''
   connection: local
   tasks:
     - name: Create a started container
-      community.general.incus_instance:
+      kmpm.linuxcontainers.incus_instance:
         name: mycontainer
         ignore_volatile_options: true
         state: started
@@ -263,7 +263,7 @@ EXAMPLES = '''
   connection: local
   tasks:
     - name: Create a started container in project mytestproject
-      community.general.incus_instance:
+      kmpm.linuxcontainers.incus_instance:
         name: mycontainer
         project: mytestproject
         ignore_volatile_options: true
@@ -283,7 +283,7 @@ EXAMPLES = '''
   connection: local
   tasks:
     - name: Delete a container
-      community.general.incus_instance:
+      kmpm.linuxcontainers.incus_instance:
         name: mycontainer
         state: absent
         type: container
@@ -293,7 +293,7 @@ EXAMPLES = '''
   connection: local
   tasks:
     - name: Restart a container
-      community.general.incus_instance:
+      kmpm.linuxcontainers.incus_instance:
         name: mycontainer
         state: restarted
         type: container
@@ -303,7 +303,7 @@ EXAMPLES = '''
   connection: local
   tasks:
     - name: Restart a container
-      community.general.incus_instance:
+      kmpm.linuxcontainers.incus_instance:
         url: https://127.0.0.1:8443
         # These client_cert and client_key values are equal to the default values.
         #client_cert: "{{ lookup('env', 'HOME') }}/.config/lxc/client.crt"
@@ -334,7 +334,7 @@ EXAMPLES = '''
 - hosts: node01.example.com
   tasks:
     - name: Create Incus container
-      community.general.incus_instance:
+      kmpm.linuxcontainers.incus_instance:
         name: new-container-1
         ignore_volatile_options: true
         state: started
@@ -345,7 +345,7 @@ EXAMPLES = '''
         target: node01
 
     - name: Create container on another node
-      community.general.incus_instance:
+      kmpm.linuxcontainers.incus_instance:
         name: new-container-2
         ignore_volatile_options: true
         state: started
@@ -360,7 +360,7 @@ EXAMPLES = '''
   connection: local
   tasks:
     - name: Create container on another node
-      community.general.incus_instance:
+      kmpm.linuxcontainers.incus_instance:
         name: new-vm-1
         type: virtual-machine
         state: started
@@ -404,7 +404,7 @@ import os
 import time
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.kmpm.general.plugins.module_utils.incus import IncusClient, IncusClientException
+from ansible.module_utils.incuscli import IncusClient, IncusClientException
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 
 # INCUS_ANSIBLE_STATES is a map of states that contain values of methods used

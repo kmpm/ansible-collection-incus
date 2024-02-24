@@ -21,7 +21,7 @@ DOCUMENTATION = r'''
         plugin:
             description: Token that ensures this is a source file for the 'incus' plugin.
             required: true
-            choices: [ 'kmpm.general.incus' ]
+            choices: [ 'kmpm.linuxcontainers.incus' ]
         url:
             description:
             - The unix domain socket path or the https URL for the incus server.
@@ -108,16 +108,16 @@ DOCUMENTATION = r'''
 
 EXAMPLES = '''
 # simple incus.yml
-plugin: kmpm.general.incus
+plugin: kmpm.linuxcontainers.incus
 url: unix:/var/lib/incus/unix.socket
 
 # simple incus.yml including filter
-plugin: kmpm.general.incus
+plugin: kmpm.linuxcontainers.incus
 url: unix:/var/lib/incus/unix.socket
 state: RUNNING
 
 # simple incus.yml including virtual machines and containers
-plugin: kmpm.general.incus
+plugin: kmpm.linuxcontainers.incus
 url: unix:/var/lib/incus/unix.socket
 type_filter: both
 
@@ -174,7 +174,7 @@ from ansible.module_utils.common.dict_transformations import dict_merge
 from ansible.module_utils.six import raise_from
 from ansible.errors import AnsibleError, AnsibleParserError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
-from ansible_collections.kmpm.general.plugins.module_utils.incuscli import IncusClient, IncusClientException
+from ansible_collections.kmpm.linuxcontainers.plugins.module_utils.incuscli import IncusClient, IncusClientException
 
 from pprint import pprint
 
@@ -538,7 +538,6 @@ class InventoryModule(BaseInventoryPlugin):
             None
         Returns:
             *(value)"""
-        
         try:
             if not data:
                 data = self.data
@@ -569,7 +568,7 @@ class InventoryModule(BaseInventoryPlugin):
             AnsibleParserError
         Returns:
             None"""
-        
+
         if not path:
             path = self.data['inventory']
         if instance_name not in path:
@@ -672,9 +671,9 @@ class InventoryModule(BaseInventoryPlugin):
                             ip_address = config['address']
                             break
             return ip_address
-        
-        
-        
+
+
+
         if self._get_data_entry('inventory/{0}/type'.format(instance_name)) == 'container':
             self.inventory.set_variable(instance_name, 'ansible_connection', 'community.general.incus')
         elif self._get_data_entry('inventory/{0}/network_interfaces'.format(instance_name)):  # instance have network interfaces

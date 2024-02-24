@@ -63,7 +63,7 @@ class IncusClientException(Exception):
         self.kwargs = kwargs
 
 class IncusClient(object):
- 
+
 
     def __init__(self, remote='local', project='default', debug=False, *args, **kwargs):
         self.debug = debug
@@ -74,11 +74,12 @@ class IncusClient(object):
         if not self._incus_cmd:
             raise AnsibleError("incus command not found in PATH")
 
-    
-    def do(self, method, url, body_json=None, timeout=None):
+
+    def do(self, method, url, body_json=None, timeout=None, *args, **kwargs):
         local_cmd = [
             self._incus_cmd,
             "query",
+            "--raw",
             "--wait",
         ]
         if not method == 'GET':
@@ -86,20 +87,21 @@ class IncusClient(object):
         local_cmd.append(url)
         # print(local_cmd)
         local_cmd = [to_bytes(i, errors='surrogate_or_strict') for i in local_cmd]
-        
+
         process = Popen(local_cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
 
         stdout = to_text(stdout)
         stderr = to_text(stderr)
         if stderr:
-            raise IncusClientException(stderr)
+            print("url", url, kwargs)
+            raise IncusClientException(stderr, **kwargs)
         if not process.returncode == 0:
             raise IncusClientException('Error Exit {0}'.format(process.returncode))
         data = json.loads(stdout)
         # print("url", url, "data", stdout[:30])
         return data
-   
+
     # def exec_command(self, cmd, in_data=None, sudoable=True):
     #     """ execute a command on the Incus host """
     #     super(Connection, self).exec_command(cmd, in_data=in_data, sudoable=sudoable)
