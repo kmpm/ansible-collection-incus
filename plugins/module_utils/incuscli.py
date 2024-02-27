@@ -63,9 +63,9 @@ class IncusClientException(Exception):
         self.msg = msg
         self.kwargs = kwargs
 
-    def __str__(self) -> str:
-
+    def __str__(self):
         return '{0} {1}'.format(self.msg, self.kwargs)
+
 
 class IncusClient(object):
     def __init__(self, remote='local', project='default', debug=False, *args, **kwargs):
@@ -78,7 +78,7 @@ class IncusClient(object):
         if not self._incus_cmd:
             raise IncusClientException("incus command not found in PATH")
 
-    def do(self, method, url,  *args, **kwargs):
+    def do(self, method, url, *args, **kwargs):
         local_cmd = [
             self._incus_cmd,
             "query",
@@ -96,7 +96,7 @@ class IncusClient(object):
 
         stdout = to_text(stdout)
         stderr = to_text(stderr)
-        print("url", url, kwargs)
+        # print("url", url, kwargs)
         if stderr:
             raise IncusClientException(stderr, **kwargs)
         if process.returncode != 0:
