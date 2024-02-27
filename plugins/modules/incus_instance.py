@@ -108,7 +108,7 @@ options:
         description:
           - For cluster deployments. Will attempt to create an instance on a target node.
             If the instance exists elsewhere in a cluster, then it will not be replaced or moved.
-            The name should respond to same name of the node you see in C(lxc cluster list).
+            The name should respond to same name of the node you see in C(incus cluster list).
         type: str
         required: false
         version_added: 1.0.0
@@ -162,14 +162,14 @@ options:
     client_key:
         description:
           - The client certificate key file path.
-          - If not specified, it defaults to C(${HOME}/.config/lxc/client.key).
+          - If not specified, it defaults to C(${HOME}/.config/incus/client.key).
         required: false
         aliases: [ key_file ]
         type: path
     client_cert:
         description:
           - The client certificate file path.
-          - If not specified, it defaults to C(${HOME}/.config/lxc/client.crt).
+          - If not specified, it defaults to C(${HOME}/.config/incus/client.crt).
         required: false
         aliases: [ cert_file ]
         type: path
@@ -178,7 +178,7 @@ options:
           - The client trusted password.
           - 'You need to set this password on the Incus server before
             running this module using the following command:
-            C(lxc config set core.trust_password <some random password>).
+            C(incus config set core.trust_password <some random password>).
             See U(https://www.stgraber.org/2016/04/18/lxd-api-direct-interaction/).'
           - If trust_password is set, this module send a request for
             authentication before sending any requests.
@@ -197,7 +197,7 @@ notes:
     and the P(kmpm.linuxcontainers.incus#connection) connection plugin.
     See the example below.
   - You can copy a file in the created instance to the localhost
-    with C(command=lxc file pull instance_name/dir/filename filename).
+    with C(command=incus file pull instance_name/dir/filename filename).
     See the first example below.
 '''
 
@@ -215,7 +215,7 @@ EXAMPLES = '''
           type: image
           mode: pull
           server: https://images.linuxcontainers.org
-          protocol: simplestreams 
+          protocol: simplestreams
           alias: debian/12
         profiles: ["default"]
         wait_for_ipv4_addresses: true
@@ -250,7 +250,7 @@ EXAMPLES = '''
           mode: pull
           # Provides current (and older) Ubuntu images with listed fingerprints
           server: https://cloud-images.ubuntu.com/releases
-          # Protocol used by 'ubuntu' remote (as shown by 'lxc remote list')
+          # Protocol used by 'ubuntu' remote (as shown by 'incus remote list')
           protocol: simplestreams
           # This provides an Ubuntu 14.04 LTS amd64 image from 20150814.
           fingerprint: e9a8bdfab6dc
@@ -306,8 +306,8 @@ EXAMPLES = '''
       kmpm.linuxcontainers.incus_instance:
         url: https://127.0.0.1:8443
         # These client_cert and client_key values are equal to the default values.
-        #client_cert: "{{ lookup('env', 'HOME') }}/.config/lxc/client.crt"
-        #client_key: "{{ lookup('env', 'HOME') }}/.config/lxc/client.key"
+        #client_cert: "{{ lookup('env', 'HOME') }}/.config/incus/client.crt"
+        #client_key: "{{ lookup('env', 'HOME') }}/.config/incus/client.key"
         trust_password: mypassword
         name: mycontainer
         state: restarted
@@ -328,7 +328,7 @@ EXAMPLES = '''
 
 # An example for Incus cluster deployments. This example will create two new container on specific
 # nodes - 'node01' and 'node02'. In 'target:', 'node01' and 'node02' are names of Incus cluster
-# members that Incus cluster recognizes, not ansible inventory names, see: 'lxc cluster list'.
+# members that Incus cluster recognizes, not ansible inventory names, see: 'incus cluster list'.
 # Incus API calls can be made to any Incus member, in this example, we send API requests to
 #'node01.example.com', which matches ansible inventory name.
 - hosts: node01.example.com
@@ -404,7 +404,7 @@ import os
 import time
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.incuscli import IncusClient, IncusClientException
+from ansible_collections.kmpm.linuxcontainers.plugins.module_utils.incuscli import IncusClient, IncusClientException
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 
 # INCUS_ANSIBLE_STATES is a map of states that contain values of methods used
@@ -418,7 +418,7 @@ INCUS_ANSIBLE_STATES = {
 }
 
 # ANSIBLE_INCUS_STATES is a map of states of incus containers to the Ansible
-# lxc_container module state parameter value.
+# incus_container module state parameter value.
 ANSIBLE_INCUS_STATES = {
     'Running': 'started',
     'Stopped': 'stopped',
@@ -463,10 +463,10 @@ class IncusContainerManagement(object):
 
         self.key_file = self.module.params.get('client_key')
         if self.key_file is None:
-            self.key_file = '{0}/.config/lxc/client.key'.format(os.environ['HOME'])
+            self.key_file = '{0}/.config/incus/client.key'.format(os.environ['HOME'])
         self.cert_file = self.module.params.get('client_cert')
         if self.cert_file is None:
-            self.cert_file = '{0}/.config/lxc/client.crt'.format(os.environ['HOME'])
+            self.cert_file = '{0}/.config/incus/client.crt'.format(os.environ['HOME'])
         self.debug = self.module._verbosity >= 4
 
         try:

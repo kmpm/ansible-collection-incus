@@ -176,7 +176,6 @@ from ansible.errors import AnsibleError, AnsibleParserError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible_collections.kmpm.linuxcontainers.plugins.module_utils.incuscli import IncusClient, IncusClientException
 
-from pprint import pprint
 
 try:
     import ipaddress
@@ -574,7 +573,6 @@ class InventoryModule(BaseInventoryPlugin):
         if instance_name not in path:
             path[instance_name] = {}
 
-
         try:
             if isinstance(value, dict) and key in path[instance_name]:
                 path[instance_name] = dict_merge(value, path[instance_name][key])
@@ -671,8 +669,6 @@ class InventoryModule(BaseInventoryPlugin):
                             ip_address = config['address']
                             break
             return ip_address
-
-
 
         if self._get_data_entry('inventory/{0}/type'.format(instance_name)) == 'container':
             self.inventory.set_variable(instance_name, 'ansible_connection', 'community.general.incus')

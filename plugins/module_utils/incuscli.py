@@ -48,34 +48,37 @@ DOCUMENTATION = """
             - name: ansible_incus_project
 """
 
-import os
-from subprocess import call, Popen, PIPE
+# import os
+from subprocess import Popen, PIPE
 
-from ansible.module_utils.urls import generic_urlparse
-from ansible.module_utils.six.moves.urllib.parse import urlparse
-from ansible.errors import AnsibleError, AnsibleConnectionFailure, AnsibleFileNotFound
+# from ansible.module_utils.urls import generic_urlparse
+# from ansible.module_utils.six.moves.urllib.parse import urlparse
+# from ansible.errors import AnsibleError, AnsibleConnectionFailure, AnsibleFileNotFound
 from ansible.module_utils.common.process import get_bin_path
 from ansible.module_utils._text import to_bytes, to_text
+
 
 class IncusClientException(Exception):
     def __init__(self, msg, **kwargs):
         self.msg = msg
         self.kwargs = kwargs
 
+    def __str__(self) -> str:
+
+        return '{0} {1}'.format(self.msg, self.kwargs)
+
 class IncusClient(object):
-
-
     def __init__(self, remote='local', project='default', debug=False, *args, **kwargs):
         self.debug = debug
         self.remote = remote
         self.project = project
+
         self._incus_cmd = get_bin_path("incus")
 
         if not self._incus_cmd:
-            raise AnsibleError("incus command not found in PATH")
+            raise IncusClientException("incus command not found in PATH")
 
-
-    def do(self, method, url, body_json=None, timeout=None, *args, **kwargs):
+    def do(self, method, url,  *args, **kwargs):
         local_cmd = [
             self._incus_cmd,
             "query",
@@ -93,10 +96,10 @@ class IncusClient(object):
 
         stdout = to_text(stdout)
         stderr = to_text(stderr)
+        print("url", url, kwargs)
         if stderr:
-            print("url", url, kwargs)
             raise IncusClientException(stderr, **kwargs)
-        if not process.returncode == 0:
+        if process.returncode != 0:
             raise IncusClientException('Error Exit {0}'.format(process.returncode))
         data = json.loads(stdout)
         # print("url", url, "data", stdout[:30])
