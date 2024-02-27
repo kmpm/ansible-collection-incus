@@ -57,6 +57,12 @@ from subprocess import Popen, PIPE
 from ansible.module_utils.common.process import get_bin_path
 from ansible.module_utils._text import to_bytes, to_text
 
+try:
+    import q
+except ImportError:
+    def q(*args):
+        return args
+
 
 class IncusClientException(Exception):
     def __init__(self, msg, **kwargs):
@@ -66,19 +72,28 @@ class IncusClientException(Exception):
     def __str__(self):
         return '{0} {1}'.format(self.msg, self.kwargs)
 
+class IncusNotFoundException(IncusClientException):
+    def __init__(self, **kwargs):
+        super(IncusNotFoundException, self).__init__('Not found', **kwargs)
+
 
 class IncusClient(object):
     def __init__(self, remote='local', project='default', debug=False, *args, **kwargs):
         self.debug = debug
         self.remote = remote
         self.project = project
+        self.logs = []
 
         self._incus_cmd = get_bin_path("incus")
 
         if not self._incus_cmd:
             raise IncusClientException("incus command not found in PATH")
 
-    def do(self, method, url, *args, **kwargs):
+    def do(self, method, url, body_json=None):
+        resp_json = self._send_query(method, url, body_json=body_json)
+        return resp_json
+
+    def _send_query(self, method, url, body_json=None):
         local_cmd = [
             self._incus_cmd,
             "query",
@@ -87,8 +102,15 @@ class IncusClient(object):
         ]
         if not method == 'GET':
             local_cmd += ['-X', method]
+
+        if not body_json is None:
+            body = json.dumps(body_json)
+            local_cmd += ['--data', body]
+
         local_cmd.append(url)
-        # print(local_cmd)
+        if self.debug:
+            q(local_cmd)
+
         local_cmd = [to_bytes(i, errors='surrogate_or_strict') for i in local_cmd]
 
         process = Popen(local_cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
@@ -96,88 +118,29 @@ class IncusClient(object):
 
         stdout = to_text(stdout)
         stderr = to_text(stderr)
-        # print("url", url, kwargs)
-        if stderr:
-            raise IncusClientException(stderr, **kwargs)
-        if process.returncode != 0:
+
+        resp_json = {}
+        if stdout:
+            resp_json = json.loads(stdout)
+
+        if self.debug:
+            q({'request': {'method': method, 'url': url, 'data': body_json},
+            'process':{'stderr': stderr, 'returncode': process.returncode},
+            'response': {'json': resp_json}})
+
+        self.logs.append({
+            'type': 'query',
+            'request': {'method': method, 'url': url, 'data': body_json},
+            'process':{'stderr': stderr, 'returncode': process.returncode},
+            'response': {'json': resp_json},
+        })
+
+        if stderr != '':
+            # possibly simulate 404
+            if "not found\n" in stderr:
+                raise IncusNotFoundException( error_code = 404, error = stderr, returncode=process.returncode)
+            raise IncusClientException(stderr, returncode=process.returncode)
+        elif process.returncode != 0:
             raise IncusClientException('Error Exit {0}'.format(process.returncode))
-        data = json.loads(stdout)
-        # print("url", url, "data", stdout[:30])
-        return data
 
-    # def exec_command(self, cmd, in_data=None, sudoable=True):
-    #     """ execute a command on the Incus host """
-    #     super(Connection, self).exec_command(cmd, in_data=in_data, sudoable=sudoable)
-
-    #     self._display.vvv(u"EXEC {0}".format(cmd),
-    #                       host=self._instance())
-
-    #     local_cmd = [
-    #         self._incus_cmd,
-    #         "--project", self.get_option("project"),
-    #         "exec",
-    #         "%s:%s" % (self.get_option("remote"), self._instance()),
-    #         "--",
-    #         self._play_context.executable, "-c", cmd]
-
-    #     local_cmd = [to_bytes(i, errors='surrogate_or_strict') for i in local_cmd]
-    #     in_data = to_bytes(in_data, errors='surrogate_or_strict', nonstring='passthru')
-
-    #     process = Popen(local_cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    #     stdout, stderr = process.communicate(in_data)
-
-    #     stdout = to_text(stdout)
-    #     stderr = to_text(stderr)
-
-    #     if stderr == "Error: Instance is not running.\n":
-    #         raise AnsibleConnectionFailure("instance not running: %s" %
-    #                                        self._instance())
-
-    #     if stderr == "Error: Instance not found\n":
-    #         raise AnsibleConnectionFailure("instance not found: %s" %
-    #                                        self._instance())
-
-    #     return process.returncode, stdout, stderr
-
-    # def put_file(self, in_path, out_path):
-    #     """ put a file from local to Incus """
-    #     super(Connection, self).put_file(in_path, out_path)
-
-    #     self._display.vvv(u"PUT {0} TO {1}".format(in_path, out_path),
-    #                       host=self._instance())
-
-    #     if not os.path.isfile(to_bytes(in_path, errors='surrogate_or_strict')):
-    #         raise AnsibleFileNotFound("input path is not a file: %s" % in_path)
-
-    #     local_cmd = [
-    #         self._incus_cmd,
-    #         "--project", self.get_option("project"),
-    #         "file", "push", "--quiet",
-    #         in_path,
-    #         "%s:%s/%s" % (self.get_option("remote"),
-    #                       self._instance(),
-    #                       out_path)]
-
-    #     local_cmd = [to_bytes(i, errors='surrogate_or_strict') for i in local_cmd]
-
-    #     call(local_cmd)
-
-    # def fetch_file(self, in_path, out_path):
-    #     """ fetch a file from Incus to local """
-    #     super(Connection, self).fetch_file(in_path, out_path)
-
-    #     self._display.vvv(u"FETCH {0} TO {1}".format(in_path, out_path),
-    #                       host=self._instance())
-
-    #     local_cmd = [
-    #         self._incus_cmd,
-    #         "--project", self.get_option("project"),
-    #         "file", "pull", "--quiet",
-    #         "%s:%s/%s" % (self.get_option("remote"),
-    #                       self._instance(),
-    #                       in_path),
-    #         out_path]
-
-    #     local_cmd = [to_bytes(i, errors='surrogate_or_strict') for i in local_cmd]
-
-    #     call(local_cmd)
+        return resp_json

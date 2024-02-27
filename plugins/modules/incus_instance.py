@@ -404,8 +404,14 @@ import os
 import time
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.kmpm.linuxcontainers.plugins.module_utils.incuscli import IncusClient, IncusClientException
+from ansible_collections.kmpm.linuxcontainers.plugins.module_utils.incuscli import IncusClient, IncusClientException, IncusNotFoundException
 from ansible.module_utils.six.moves.urllib.parse import urlencode
+
+try:
+    import q
+except ImportError:
+    def q():
+        pass
 
 # INCUS_ANSIBLE_STATES is a map of states that contain values of methods used
 # when a particular state is evoked.
@@ -467,7 +473,7 @@ class IncusContainerManagement(object):
         self.cert_file = self.module.params.get('client_cert')
         if self.cert_file is None:
             self.cert_file = '{0}/.config/incus/client.crt'.format(os.environ['HOME'])
-        self.debug = self.module._verbosity >= 4
+        self.debug = self.module._verbosity >= 3
 
         try:
             if self.module.params['url'] != ANSIBLE_INCUS_DEFAULT_URL:
@@ -504,7 +510,11 @@ class IncusContainerManagement(object):
         url = '{0}/{1}'.format(self.api_endpoint, self.name)
         if self.project:
             url = '{0}?{1}'.format(url, urlencode(dict(project=self.project)))
-        return self.client.do('GET', url, ok_error_codes=[404])
+        try:
+            return self.client.do('GET', url)
+        except IncusNotFoundException:
+            return {'type': 'error'}
+
 
     def _get_instance_state_json(self):
         url = '{0}/{1}/state'.format(self.api_endpoint, self.name)
@@ -542,7 +552,8 @@ class IncusContainerManagement(object):
         if self.type not in self.api_endpoint:
             config['type'] = self.type
         if not self.module.check_mode:
-            self.client.do('POST', url, config, wait_for_container=self.wait_for_container)
+            # self.client.do('POST', url, config, wait_for_container=self.wait_for_container)
+            self.client.do('POST', url, config)
         self.actions.append('create')
 
     def _start_instance(self):
