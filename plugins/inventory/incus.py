@@ -21,7 +21,7 @@ DOCUMENTATION = r'''
         plugin:
             description: Token that ensures this is a source file for the 'incus' plugin.
             required: true
-            choices: [ 'kmpm.linuxcontainers.incus' ]
+            choices: [ 'kmpm.incus.incus' ]
         url:
             description:
             - The unix domain socket path or the https URL for the incus server.
@@ -108,16 +108,16 @@ DOCUMENTATION = r'''
 
 EXAMPLES = '''
 # simple incus.yml
-plugin: kmpm.linuxcontainers.incus
+plugin: kmpm.incus.incus
 url: unix:/var/lib/incus/unix.socket
 
 # simple incus.yml including filter
-plugin: kmpm.linuxcontainers.incus
+plugin: kmpm.incus.incus
 url: unix:/var/lib/incus/unix.socket
 state: RUNNING
 
 # simple incus.yml including virtual machines and containers
-plugin: kmpm.linuxcontainers.incus
+plugin: kmpm.incus.incus
 url: unix:/var/lib/incus/unix.socket
 type_filter: both
 
@@ -174,7 +174,7 @@ from ansible.module_utils.common.dict_transformations import dict_merge
 from ansible.module_utils.six import raise_from
 from ansible.errors import AnsibleError, AnsibleParserError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
-from ansible_collections.kmpm.linuxcontainers.plugins.module_utils.incuscli import IncusClient, IncusClientException
+from ansible_collections.kmpm.incus.plugins.module_utils.incuscli import IncusClient, IncusClientException
 
 
 try:

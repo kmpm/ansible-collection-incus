@@ -3,6 +3,17 @@
 
 
 ## Testing
+### Using ansible-doc
+```shell
+# Does ansible recognize the inventory plugin
+$ ansible-doc -t inventory -l | grep incus
+kmpm.incus.incus                                        Returns Ansible inv...
+
+# Does it recognize the instance module
+$ ansible-doc -t module -l | grep incus
+kmpm.incus.incus_instance 
+
+```
 
 ### Sanity
 First fix any format or similar errors

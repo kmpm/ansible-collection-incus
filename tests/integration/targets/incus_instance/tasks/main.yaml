@@ -1,18 +1,18 @@
 ---
 - name: create container
-  kmpm.linuxcontainers.incus_instance:
+  kmpm.incus.incus_instance:
     name: mycontainer
     source: 
       type: image
       alias: debian/12/cloud
-      server: "https://images.linuxcontainers.org"
+      server: "https://images.incus.org"
       protocol: "simplestreams"
       mode: "pull"
       allow_inconsistent: false
   register: create_result
 
 - name: destroy container
-  kmpm.linuxcontainers.incus_instance:
+  kmpm.incus.incus_instance:
     name: mycontainer
     state: absent
   register: destroy_result

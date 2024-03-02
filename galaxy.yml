@@ -5,7 +5,7 @@
 namespace: kmpm
 
 # The name of the collection. Has the same character restrictions as 'namespace'
-name: linuxcontainers
+name: incus
 
 # The version of the collection. Must be compatible with semantic versioning
 version: 0.0.1
@@ -45,16 +45,16 @@ dependencies: {
 }
 
 # The URL of the originating SCM repository
-repository: http://github.com/kmpm/ansible-collection-linuxcontainers
+repository: http://github.com/kmpm/ansible-collection-incus
 
 # The URL to any online docs
-documentation: https://github.com/kmpm/ansible-collection-linuxcontainers/wiki
+documentation: https://github.com/kmpm/ansible-collection-incus/wiki
 
 # The URL to the homepage of the collection/project
-homepage: http://github.com/kmpm/ansible-collection-linuxcontainers
+homepage: http://github.com/kmpm/ansible-collection-incus
 
 # The URL to the collection issue tracker
-issues: http://github.com/kmpm/ansible-collection-linuxcontainers/issues
+issues: http://github.com/kmpm/ansible-collection-incus/issues
 
 # A list of file glob-like patterns used to filter any files or directories that should not be included in the build
 # artifact. A pattern is matched from the relative path of the file or directory of the collection directory. This
