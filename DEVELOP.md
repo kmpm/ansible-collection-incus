@@ -5,6 +5,9 @@
 - https://www.redhat.com/sysadmin/ansible-plugin-inventory-files
 - https://github.com/zestyping/q
 
+### If you are using vscode
+- [Medium - Guide to writing and debugging ansible modules in vscode](https://medium.com/@tushe_33516/guide-to-writing-and-debugging-ansible-modules-in-vscode-a-nearly-perfect-setup-ad54024a466a)
+- [GH - Sample Project for debugging with vscode](https://github.com/troshlyak/vscode_ansible)
 
 
 ## Testing
