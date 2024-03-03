@@ -44,6 +44,8 @@ ansible-test sanity --python 3.11 -v
 
 # test with local venv
 ansible-test units --venv --python 3.11
+
+ansible-test integration --venv --python 3.11 unsupported/incus_instance
 ```
 
 
