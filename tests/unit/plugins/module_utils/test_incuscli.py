@@ -28,9 +28,3 @@ def test_instanciation(_get_bin_path):
     client = IncusClient()
     _get_bin_path.assert_called_once()
     assert client is not None
-    # result = client.do('GET', '/')
-    # print(result)
-    # assert 'status' in result
-    # assert 'status_code' in result
-    # assert result['status_code'] == 200
-    # assert result['metadata'] == ['/1.0']

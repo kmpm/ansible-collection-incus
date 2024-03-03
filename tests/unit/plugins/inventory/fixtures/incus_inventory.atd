@@ -1,174 +1,107 @@
-{
-    "instances":{
-        "vlantest":{
-            "instances":{
-                "metadata":{
-                    "config":{
-                        "image.os":"ubuntu",
-                        "image.release":"focal",
-                        "image.version":"20.04",
-                        "volatile.last_state.power":"RUNNING"
-                    },
-                    "devices":{
-                        "eth0":{
-                            "name":"eth0",
-                            "network":"my-macvlan",
-                            "type":"nic"
-                        }
-                    },
-                    "profiles":[
-                        "default"
-                    ],
-                    "expanded_devices":{
-                        "eth0":{
-                            "name":"eth0",
-                            "network":"my-macvlan",
-                            "type":"nic"
-                        }
-                    },
-                    "name":"vlantest",
-                    "status":"Running",
-                    "location":"Berlin"
-                }
-            },
-            "state":{
-                "metadata":{
-                    "status":"Running",
-                    "network":{
-                        "eth0":{
-                            "addresses":[
-                                {
-                                    "family":"inet",
-                                    "address":"10.98.143.199",
-                                    "netmask":"24",
-                                    "scope":"global"
-                                },
-                                {
-                                "family":"inet6",
-                                "address":"fd42:bd00:7b11:2167:216:3eff:fe78:2ef3",
-                                "netmask":"64",
-                                "scope":"global"
-                                },
-                                {
-                                    "family":"inet6",
-                                    "address":"fe80::216:3eff:fed3:7af3",
-                                    "netmask":"64",
-                                    "scope":"link"
-                                }
-                            ]
-                        },
-                        "lo":{
-                            "addresses":[
-                                {
-                                    "family":"inet",
-                                    "address":"127.0.0.1",
-                                    "netmask":"8",
-                                    "scope":"local"
-                                },
-                                {
-                                    "family":"inet6",
-                                    "address":"::1",
-                                    "netmask":"128",
-                                    "scope":"local"
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        }
-    },
-
-    "networks":{
-        "my-macvlan":{
-            "state":{
-                "metadata":{
-                    "addresses":[
-                        {
-                            "family":"inet",
-                            "address":"192.168.178.199",
-                            "netmask":"24",
-                            "scope":"global"
-                        },
-                        {
-                            "family":"inet6",
-                            "address":"fd42:bd00:7b11:2167:216:3eff:fe78:2ef3",
-                            "netmask":"64",
-                            "scope":"global"
-                        },
-                        {
-                            "family":"inet6",
-                            "address":"fe80::216:3eff:fed3:7af3",
-                            "netmask":"64",
-                            "scope":"link"
-                        }
-                    ],
-                    "vlan":{
-                        "lower_device":"eno1",
-                        "vid":666
-                    }
-                }
-            }
-        },
-        "lo":{
-            "state":{
-                "metadata":{
-                    "addresses":[
-                        {
-                            "family":"inet",
-                            "address":"127.0.0.1",
-                            "netmask":"8",
-                            "scope":"local"
-                        },
-                        {
-                            "family":"inet6",
-                            "address":"::1",
-                            "netmask":"128",
-                            "scope":"local"
-                        }
-                    ],
-                    "vlan":null
-                }
-            }
-        },
-        "eno1":{
-            "state":{
-                "metadata":{
-                    "addresses":[
-                        {
-                            "family":"inet",
-                            "address":"192.168.178.126",
-                            "netmask":"24",
-                            "scope":"global"
-                        },
-                        {
-                            "family":"inet6",
-                            "address":"fe80::3c0b:7da9:3cc7:9e40",
-                            "netmask":"64",
-                            "scope":"link"
-                        }
-                    ],
-                    "vlan":null
-                }
-            }
-        },
-        "eno1.666":{
-            "state":{
-                "metadata":{
-                    "addresses":[
-                        {
-                            "family":"inet6",
-                            "address":"fe80::de4a:3eff:fe8d:f356",
-                            "netmask":"64",
-                            "scope":"link"
-                        }
-                    ],
-                    "vlan":{
-                        "lower_device":"eno1",
-                        "vid":666
-                    }
-                }
-            }
-        }
-    }
-}
+- name: vlantest
+  location: Berlin
+  status: Running
+  status_code: 103
+  type: container
+  architecture: aarch64
+  config:
+    boot.autostart: "true"
+    image.os: Debian
+    image.release: bookworm
+    image.serial: "20240228_05:24"
+    volatile.last_state.power: RUNNING
+  project: default
+  profiles:
+  - default
+  expanded_devices:
+    eth0:
+      name: eth0
+      network: incusbr0
+      type: nic
+    root:
+      path: /
+      pool: default
+      type: disk
+  state:
+    status: Running
+    status_code: 103
+    disk: {}
+    memory:
+      usage: 0
+      usage_peak: 0
+      total: 0
+      swap_usage: 0
+      swap_usage_peak: 0
+    network:
+      docker0:
+        addresses:
+        - family: inet
+          address: 172.17.0.1
+          netmask: "16"
+          scope: global
+        counters:
+          bytes_received: 0
+          bytes_sent: 0
+          packets_received: 0
+          packets_sent: 0
+          errors_received: 0
+          errors_sent: 0
+          packets_dropped_outbound: 0
+          packets_dropped_inbound: 0
+        hwaddr: 02:42:31:fa:54:50
+        host_name: ""
+        mtu: 1500
+        state: up
+        type: broadcast
+      eth0:
+        addresses:
+        - family: inet
+          address: 10.201.82.202
+          netmask: "24"
+          scope: global
+        - family: inet6
+          address: fd42:9ad6:a276:908a:216:3eff:fed9:e665
+          netmask: "64"
+          scope: global
+        - family: inet6
+          address: fe80::216:3eff:fed9:e665
+          netmask: "64"
+          scope: link
+        counters:
+          bytes_received: 124146556
+          bytes_sent: 1184663
+          packets_received: 37892
+          packets_sent: 15354
+          errors_received: 0
+          errors_sent: 0
+          packets_dropped_outbound: 0
+          packets_dropped_inbound: 0
+        hwaddr: 00:16:3e:d9:e6:65
+        host_name: vethe811d28f
+        mtu: 1500
+        state: up
+        type: broadcast
+      lo:
+        addresses:
+        - family: inet
+          address: 127.0.0.1
+          netmask: "8"
+          scope: local
+        - family: inet6
+          address: ::1
+          netmask: "128"
+          scope: local
+        counters:
+          bytes_received: 4818
+          bytes_sent: 4818
+          packets_received: 40
+          packets_sent: 40
+          errors_received: 0
+          errors_sent: 0
+          packets_dropped_outbound: 0
+          packets_dropped_inbound: 0
+        hwaddr: ""
+        host_name: ""
+        mtu: 65536
+        state: up
+        type: loopback

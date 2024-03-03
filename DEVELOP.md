@@ -1,4 +1,9 @@
-# Developin the collection
+# Developing the collection
+
+## Recommended reading
+- https://www.redhat.com/sysadmin/ansible-dynamic-inventory-python
+- https://www.redhat.com/sysadmin/ansible-plugin-inventory-files
+- https://github.com/zestyping/q
 
 
 
@@ -7,11 +12,17 @@
 ```shell
 # Does ansible recognize the inventory plugin
 $ ansible-doc -t inventory -l | grep incus
-kmpm.incus.incus                                        Returns Ansible inv...
+kmpm.incus.incus                                        Incus inventory sou...
 
 # Does it recognize the instance module
 $ ansible-doc -t module -l | grep incus
 kmpm.incus.incus_instance 
+
+```
+
+### Simple execution
+```shell
+ansible hostname -i inventory_source -m ansible.builtin.ping
 
 ```
 
