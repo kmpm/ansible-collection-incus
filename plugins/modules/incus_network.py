@@ -9,7 +9,8 @@ __metaclass__ = type
 
 DOCUMENTATION = '''
 ---
-module: kmpm.incus.incus_network
+module: incus_network
+author: "Peter Magnusson (@kmpm)"
 short_description: Manage Incus Network resources
 description:
   - Management of Incus Network resources
@@ -17,18 +18,18 @@ options:
     name:
         description:
             - Name of the network
-            type: str
-            required: true
+        type: str
+        required: true
     project:
         description:
             - Project to manage the network in
-            type: str
-            default: default
+        type: str
+        default: default
     description:
         description:
             - Description of the network
-            type: str
-            required: false
+        type: str
+        required: false
     config:
         description:
             - The config for the network
@@ -44,16 +45,31 @@ options:
     type:
         description:
             - Type of network
-            type: str
-            choices: [bridge, ovn, macvlan, sriov, physical]
-            default: bridge
+        type: str
+        choices: [bridge, ovn, macvlan, sriov, physical]
+        default: bridge
     state:
         description:
             - State of the network
-            type: str
-            choices: [present, absent]
-            default: present
+        type: str
+        choices: [present, absent]
+        default: present
 '''
+
+EXAMPLES = '''
+- host: localhost
+  connection: local
+  tasks:
+    - name: Get all networks
+      kmpm.incus.incus_network:
+        name: testnet0
+        config:
+            ipv4.address: "192.168.171.1/24"
+            ipv4.dhcp": "false"
+            "ipv6.address": "none"
+        type: "bridge"
+'''
+
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.kmpm.incus.plugins.module_utils.incuscli import IncusClient, IncusClientException
 
@@ -72,8 +88,8 @@ ANSIBLE_INCUS_STATES = {
 }
 
 
-CONFIG_PARAMS = ['name', 'project', 'config', 'description' 'state', 'target', 'type' ]
-# CONFIG_CREATION_PARAMS = ['name', 'project', 'description', 'target', 'type']
+CONFIG_PARAMS = ['name', 'project', 'config', 'description', 'state', 'target', 'type']
+
 
 class IncusNetworkManagement(object):
     def __init__(self, module, **kwargs):
@@ -114,9 +130,9 @@ class IncusNetworkManagement(object):
         return config
 
     def _get_network(self):
-        url =  '{0}/{1}'.format(self.api_endpoint, self.name)
+        url = '{0}/{1}'.format(self.api_endpoint, self.name)
         try:
-            return self.client.query_raw('GET',url, ok_errors=[404])
+            return self.client.query_raw('GET', url, ok_errors=[404])
         except IncusClientException as e:
             return {'type': 'error'}
 
@@ -140,7 +156,7 @@ class IncusNetworkManagement(object):
 
     def _is_managed(self):
         return (self.current_network.get('type', '') == 'sync'
-                and self.current_network.get('metadata', {}).get('managed', False) == True)
+                and bool(self.current_network.get('metadata', {}).get('managed', False)))
 
     def _is_used(self):
         usage = self.current_network.get('metadata', {}).get('used_by', [])
@@ -195,7 +211,7 @@ class IncusNetworkManagement(object):
         self._delete_network()
 
     def _unmanaged(self):
-       # FIXME: Fail, warn or skipp
+        # FIXME: Fail, warn or skipp
         self.module.fail_json(msg='Unmanaged state not implemented')
 
     def run(self):
@@ -234,7 +250,6 @@ class IncusNetworkManagement(object):
             if self.client.debug:
                 fail_params['logs'] = self.client.logs
             self.module.fail_json(**fail_params)
-
 
 
 def main():

@@ -11,11 +11,9 @@ from typing import List, Dict, Any, Union
 import json
 from subprocess import Popen, PIPE
 from ansible.module_utils.common.process import get_bin_path
-from ansible.module_utils.common.yaml import yaml_load
 from ansible.module_utils._text import to_bytes, to_text
 from ansible.module_utils.six.moves.urllib.parse import urlencode
-from ansible.module_utils.common.dict_transformations import dict_merge
-import q
+
 
 class IncusClientException(Exception):
     def __init__(self, msg, **kwargs):
@@ -67,17 +65,18 @@ class IncusClient(object):
         return json.loads(data)
 
     def query_raw(self,
-              method: str, url: str,
-              payload: Dict[str, Any] = {},
-              url_params: Dict[str, Any] = {},
-              ok_errors: List[int] = []
-              ) -> Union[Dict[str, Any],None]:
+                  method: str, url: str,
+                  payload: Union[Dict[str, Any], None] = None,
+                  url_params: Union[Dict[str, Any], None] = None,
+                  ok_errors: Union[List[int], None] = None
+                  ) -> Union[Dict[str, Any], None]:
         """Query Incus API.
         Returns the response as a dict.
         """
-        if not 'project' in url_params:
+        url_params = url_params or {}
+        if 'project' not in url_params:
             url_params['project'] = self.project
-        if not 'target' in url_params and self.target:
+        if 'target' not in url_params and self.target:
             url_params['target'] = self.target
 
         if '?' in url:
@@ -89,9 +88,8 @@ class IncusClient(object):
         if self.debug:
             self.logs.append(args)
 
-        if len(payload) > 0:
+        if payload and len(payload) > 0:
             args.extend(["--data", json.dumps(payload)])
-        q(args)
 
         response = self._execute(*args)
         json_data = json.loads(response)
@@ -125,5 +123,3 @@ class IncusClient(object):
 
         self._parseErr(process.returncode, stderr)
         return stdout
-
-

@@ -9,26 +9,40 @@ __metaclass__ = type
 
 DOCUMENTATION = '''
 ---
-module: kmpm.incus.incus_network_info
+module: incus_network_info
+author: "Peter Magnusson (@kmpm)"
 short_description: Get information about incus networks
 description:
   - Get information about incus networks
+extends_documentation_fragment:
+  - kmpm.incus.attributes
+  - kmpm.incus.attributes.info_module
 options:
     name:
         description:
             - Name of the network. If empty all networks will be returned.
-            type: str
-            required: false
+        type: str
+        required: false
     project:
         description:
             - Project to get network information from
-            type: str
-            default: default
+        type: str
+        default: default
     target:
         description:
           - For cluster deployments.
         type: str
         required: false
+'''
+EXAMPLES = '''
+- host: localhost
+  connection: local
+  tasks:
+    - name: Get all networks
+      kmpm.incus.incus_network_info:
+        project: default
+        register: networks
+
 '''
 
 RETURN = r'''
@@ -61,7 +75,7 @@ network_info:
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.kmpm.incus.plugins.module_utils.incuscli import IncusClient, IncusClientException
 
-NETWORK_FIELDS=['name', 'type', 'config', 'project', 'description', 'managed', 'status', 'locations']
+NETWORK_FIELDS = ['name', 'type', 'config', 'project', 'description', 'managed', 'status', 'locations']
 
 
 class IncusNetworkInfo(object):
@@ -134,7 +148,7 @@ def main():
             project=dict(type='str', default='default'),
             target=dict(type='str', required=False),
         ),
-        supports_check_mode=False
+        supports_check_mode=True
     )
 
     info = IncusNetworkInfo(module)

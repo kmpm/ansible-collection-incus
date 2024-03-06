@@ -11,13 +11,18 @@ __metaclass__ = type
 
 DOCUMENTATION = '''
 ---
-module: kmpm.general.incus_instance
+module: incus_instance
 short_description: Manage Incus instances
 description:
   - Management of Incus containers and virtual machines.
 author: "Hiroaki Nakamura (@hnakamur)"
 extends_documentation_fragment:
   - kmpm.incus.attributes
+attributes:
+    check_mode:
+        support: full
+    diff_mode:
+        support: full
 options:
     name:
         description:
@@ -336,14 +341,11 @@ actions:
 '''
 import copy
 import datetime
-import os
 import time
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.kmpm.incus.plugins.module_utils.incuscli import IncusClient, IncusClientException
-from ansible.module_utils.six.moves.urllib.parse import urlencode
 
-import q
 
 # INCUS_ANSIBLE_STATES is a map of states that contain values of methods used
 # when a particular state is evoked.
@@ -411,7 +413,6 @@ class IncusInstanceManagement(object):
         self.old_instance = {}
         self.old_sections = {}
 
-    @q
     def _build_config(self):
         self.config = {}
         for attr in CONFIG_PARAMS:
@@ -419,7 +420,6 @@ class IncusInstanceManagement(object):
             if param_val is not None:
                 self.config[attr] = param_val
 
-    @q
     def _get_instance_json(self):
         url = '{0}/{1}'.format(self.api_endpoint, self.name)
         try:
@@ -427,7 +427,6 @@ class IncusInstanceManagement(object):
         except IncusClientException:
             return {'type': 'error'}
 
-    @q
     def _get_instance_state_json(self):
         url = '{0}/{1}/state'.format(self.api_endpoint, self.name)
         return self.client.query_raw('GET', url, ok_error_codes=[404])
@@ -446,7 +445,6 @@ class IncusInstanceManagement(object):
         if not self.module.check_mode:
             return self.client.query_raw('PUT', url, payload=payload)
 
-    @q
     def _create_instance(self):
         url = self.api_endpoint
         url_params = dict()
@@ -497,12 +495,10 @@ class IncusInstanceManagement(object):
         addresses = dict((k, [a['address'] for a in v['addresses'] if a['family'] == 'inet']) for k, v in network.items())
         return addresses
 
-    @q
     @staticmethod
     def _has_all_ipv4_addresses(addresses):
         return len(addresses) > 0 and all(len(v) > 0 for v in addresses.values())
 
-    @q
     def _get_addresses(self):
         try:
             due = datetime.datetime.now() + datetime.timedelta(seconds=self.timeout)
@@ -516,7 +512,6 @@ class IncusInstanceManagement(object):
             e.msg = 'timeout for getting IPv4 addresses'
             raise
 
-    @q
     def _started(self):
         if self.old_state == 'absent':
             self._create_instance()
@@ -580,7 +575,6 @@ class IncusInstanceManagement(object):
                 self._apply_instance_configs()
             self._freeze_instance()
 
-    @q
     def _needs_to_change_instance_config(self, key):
         if key not in self.config:
             return False
@@ -625,7 +619,6 @@ class IncusInstanceManagement(object):
             self.client.query_raw('PUT', url, payload=payload)
         self.actions.append('apply_instance_configs')
 
-    @q
     def run(self):
         """Run the main method."""
 
@@ -678,7 +671,6 @@ class IncusInstanceManagement(object):
             self.module.fail_json(**fail_params)
 
 
-@q
 def main():
     """Ansible Main module."""
 
