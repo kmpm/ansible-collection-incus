@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # Based on community.general.lxd_container.py by (c) 2016, Hiroaki Nakamura <hnakamur@gmail.com>
-# (c) 2023, Peter Magnusson <me@kmpm.se>
+# (c) 2024, Peter Magnusson <me@kmpm.se>
 # GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -18,13 +18,6 @@ description:
 author: "Hiroaki Nakamura (@hnakamur)"
 extends_documentation_fragment:
   - kmpm.incus.attributes
-attributes:
-    check_mode:
-        support: full
-        version_added: 6.4.0
-    diff_mode:
-        support: full
-        version_added: 6.4.0
 options:
     name:
         description:
@@ -123,12 +116,12 @@ options:
         type: int
     type:
         description:
-          - Instance type can be either V(virtual-machine) or V(container).
+          - Instance type can be either V(vm) or V(container).
         required: false
         default: container
         choices:
           - container
-          - virtual-machine
+          - vm
         type: str
         version_added: 4.1.0
     wait_for_ipv4_addresses:
@@ -153,26 +146,6 @@ options:
         required: false
         default: false
         type: bool
-    url:
-        description:
-          - The unix domain socket path or the https URL for the Incus server.
-        required: false
-        default: unix:/var/lib/incus/unix.socket
-        type: str
-    client_key:
-        description:
-          - The client certificate key file path.
-          - If not specified, it defaults to C(${HOME}/.config/incus/client.key).
-        required: false
-        aliases: [ key_file ]
-        type: path
-    client_cert:
-        description:
-          - The client certificate file path.
-          - If not specified, it defaults to C(${HOME}/.config/incus/client.crt).
-        required: false
-        aliases: [ cert_file ]
-        type: path
 notes:
   - Instances can be a container or a virtual machine, both of them must have unique name. If you attempt to create an instance
     with a name that already existed in the users namespace the module will
@@ -221,31 +194,6 @@ EXAMPLES = '''
       delegate_to: mycontainer
       ansible.builtin.raw: apt-get install -y python
       when: python_install_check.rc == 1
-
-# An example for creating an Ubuntu 14.04 container using an image fingerprint.
-# This requires changing 'server' and 'protocol' key values, replacing the
-# 'alias' key with with 'fingerprint' and supplying an appropriate value that
-# matches the container image you wish to use.
-- hosts: localhost
-  connection: local
-  tasks:
-    - name: Create a started container
-      kmpm.incus.incus_instance:
-        name: mycontainer
-        ignore_volatile_options: true
-        state: started
-        source:
-          type: image
-          mode: pull
-          # Provides current (and older) Ubuntu images with listed fingerprints
-          server: https://cloud-images.ubuntu.com/releases
-          # Protocol used by 'ubuntu' remote (as shown by 'incus remote list')
-          protocol: simplestreams
-          # This provides an Ubuntu 14.04 LTS amd64 image from 20150814.
-          fingerprint: e9a8bdfab6dc
-        profiles: ["default"]
-        wait_for_ipv4_addresses: true
-        timeout: 600
 
 # An example for creating container in project other than default
 - hosts: localhost
@@ -350,7 +298,7 @@ EXAMPLES = '''
     - name: Create container on another node
       kmpm.incus.incus_instance:
         name: new-vm-1
-        type: virtual-machine
+        type: vm
         state: started
         ignore_volatile_options: true
         wait_for_ipv4_addresses: true
@@ -415,9 +363,6 @@ ANSIBLE_INCUS_STATES = {
     'Frozen': 'frozen',
 }
 
-# ANSIBLE_INCUS_DEFAULT_URL is a default value of the Incus endpoint
-ANSIBLE_INCUS_DEFAULT_URL = 'unix:/var/lib/incus/unix.socket'
-
 # CONFIG_PARAMS is a list of config attribute names.
 CONFIG_PARAMS = [
     'architecture', 'config', 'devices', 'ephemeral', 'profiles', 'source', 'type'
@@ -428,9 +373,9 @@ CONFIG_PARAMS = [
 CONFIG_CREATION_PARAMS = ['source', 'type']
 
 
-class IncusContainerManagement(object):
+class IncusInstanceManagement(object):
     def __init__(self, module):
-        """Management of LXC containers via Ansible.
+        """Management of Incus containers via Ansible.
 
         :param module: Processed Ansible Module.
         :type module: ``object``
@@ -441,7 +386,7 @@ class IncusContainerManagement(object):
         self._build_config()
 
         self.state = self.module.params['state']
-        self.api_endpoint = 'spam, spam, spam, lovely spam'
+        self.api_endpoint = '/1.0/instances'
         self.timeout = self.module.params['timeout']
         self.wait_for_ipv4_addresses = self.module.params['wait_for_ipv4_addresses']
         self.force_stop = self.module.params['force_stop']
@@ -451,31 +396,15 @@ class IncusContainerManagement(object):
 
         self.type = self.module.params['type']
 
-        self.key_file = self.module.params.get('client_key')
-        if self.key_file is None:
-            self.key_file = '{0}/.config/incus/client.key'.format(os.environ['HOME'])
-        self.cert_file = self.module.params.get('client_cert')
-        if self.cert_file is None:
-            self.cert_file = '{0}/.config/incus/client.crt'.format(os.environ['HOME'])
         self.debug = self.module._verbosity >= 3
 
         try:
-            if self.module.params['url'] != ANSIBLE_INCUS_DEFAULT_URL:
-                self.url = self.module.params['url']
-            else:
-                self.url = self.module.params['url']
-        except Exception as e:
-            self.module.fail_json(msg=e.msg)
-
-        try:
             self.client = IncusClient(
+                project=self.project,
                 debug=self.debug
             )
         except IncusClientException as e:
             self.module.fail_json(msg=e.msg)
-
-
-
 
         self.actions = []
         self.diff = {'before': {}, 'after': {}}
@@ -490,30 +419,18 @@ class IncusContainerManagement(object):
             if param_val is not None:
                 self.config[attr] = param_val
 
-    def _get_instance(self):
-        instances = self.client.list(filter=self.name)
-        if len(instances) == 0:
-            return None
-        if len(instances) > 1:
-            raise IncusClientException('Found multiple instances with name: {0}'.format(self.name))
-        return instances[0]
-
     @q
     def _get_instance_json(self):
         url = '{0}/{1}'.format(self.api_endpoint, self.name)
-        if self.project:
-            url = '{0}?{1}'.format(url, urlencode(dict(project=self.project)))
         try:
-            return self.client.do('GET', url)
+            return self.client.query_raw('GET', url)
         except IncusClientException:
             return {'type': 'error'}
 
     @q
     def _get_instance_state_json(self):
         url = '{0}/{1}/state'.format(self.api_endpoint, self.name)
-        if self.project:
-            url = '{0}?{1}'.format(url, urlencode(dict(project=self.project)))
-        return self.client.do('GET', url, ok_error_codes=[404])
+        return self.client.query_raw('GET', url, ok_error_codes=[404])
 
     @staticmethod
     def _instance_json_to_module_state(resp_json):
@@ -523,13 +440,11 @@ class IncusContainerManagement(object):
 
     def _change_state(self, action, force_stop=False):
         url = '{0}/{1}/state'.format(self.api_endpoint, self.name)
-        if self.project:
-            url = '{0}?{1}'.format(url, urlencode(dict(project=self.project)))
-        body_json = {'action': action, 'timeout': self.timeout}
+        payload = {'action': action, 'timeout': self.timeout}
         if force_stop:
-            body_json['force'] = True
+            payload['force'] = True
         if not self.module.check_mode:
-            return self.client.do('PUT', url, body_json=body_json)
+            return self.client.query_raw('PUT', url, payload=payload)
 
     @q
     def _create_instance(self):
@@ -539,15 +454,14 @@ class IncusContainerManagement(object):
             url_params['target'] = self.target
         if self.project:
             url_params['project'] = self.project
-        if url_params:
-            url = '{0}?{1}'.format(url, urlencode(url_params))
+
         config = self.config.copy()
         config['name'] = self.name
         if self.type not in self.api_endpoint:
             config['type'] = self.type
         if not self.module.check_mode:
             # self.client.do('POST', url, config, wait_for_container=self.wait_for_container)
-            self.client.do('POST', url, config)
+            self.client.query_raw('POST', url, payload=config, url_params=url_params)
         self.actions.append('create')
 
     def _start_instance(self):
@@ -564,10 +478,8 @@ class IncusContainerManagement(object):
 
     def _delete_instance(self):
         url = '{0}/{1}'.format(self.api_endpoint, self.name)
-        if self.project:
-            url = '{0}?{1}'.format(url, urlencode(dict(project=self.project)))
         if not self.module.check_mode:
-            self.client.do('DELETE', url)
+            self.client.query_raw('DELETE', url)
         self.actions.append('delete')
 
     def _freeze_instance(self):
@@ -694,24 +606,23 @@ class IncusContainerManagement(object):
 
     def _apply_instance_configs(self):
         old_metadata = copy.deepcopy(self.old_instance).get('metadata', None) or {}
-        body_json = {}
+        payload = {}
         for param in set(CONFIG_PARAMS) - set(CONFIG_CREATION_PARAMS):
             if param in old_metadata:
-                body_json[param] = old_metadata[param]
+                payload[param] = old_metadata[param]
 
             if self._needs_to_change_instance_config(param):
                 if param == 'config':
-                    body_json['config'] = body_json.get('config', None) or {}
+                    payload['config'] = payload.get('config', None) or {}
                     for k, v in self.config['config'].items():
-                        body_json['config'][k] = v
+                        payload['config'][k] = v
                 else:
-                    body_json[param] = self.config[param]
-        self.diff['after']['instance'] = body_json
+                    payload[param] = self.config[param]
+        self.diff['after']['instance'] = payload
         url = '{0}/{1}'.format(self.api_endpoint, self.name)
-        if self.project:
-            url = '{0}?{1}'.format(url, urlencode(dict(project=self.project)))
+
         if not self.module.check_mode:
-            self.client.do('PUT', url, body_json=body_json)
+            self.client.query_raw('PUT', url, payload=payload)
         self.actions.append('apply_instance_configs')
 
     @q
@@ -721,13 +632,12 @@ class IncusContainerManagement(object):
         try:
 
             self.ignore_volatile_options = self.module.params.get('ignore_volatile_options')
-
-            self.old_instance = self._get_instance()
+            self.old_instance = self._get_instance_json()
             self.old_sections = dict(
                 (section, content) if not isinstance(content, dict)
                 else (section, dict((k, v) for k, v in content.items()
                                     if not (self.ignore_volatile_options and k.startswith('volatile.'))))
-                for section, content in (self.old_instance.get('metadata', None) or {}).items()
+                for section, content in (self.old_instance or {}).items()
                 if section in set(CONFIG_PARAMS) - set(CONFIG_CREATION_PARAMS)
             )
 
@@ -766,6 +676,7 @@ class IncusContainerManagement(object):
             if self.client.debug:
                 fail_params['logs'] = e.kwargs['logs']
             self.module.fail_json(**fail_params)
+
 
 @q
 def main():
@@ -831,24 +742,11 @@ def main():
                 type='bool',
                 default=False,
             ),
-            url=dict(
-                type='str',
-                default=ANSIBLE_INCUS_DEFAULT_URL,
-            ),
-            client_key=dict(
-                type='path',
-                aliases=['key_file'],
-            ),
-            client_cert=dict(
-                type='path',
-                aliases=['cert_file'],
-            ),
-
         ),
         supports_check_mode=True,
     )
 
-    incus_manage = IncusContainerManagement(module=module)
+    incus_manage = IncusInstanceManagement(module=module)
     incus_manage.run()
 
 
