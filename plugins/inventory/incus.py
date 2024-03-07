@@ -79,7 +79,7 @@ else:
 
 
 class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
-    NAME = 'kmpm.general.incus'
+    NAME = 'kmpm.incus.incus'
     DEBUG = 4
 
     def __init__(self):
