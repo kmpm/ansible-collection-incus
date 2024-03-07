@@ -1,0 +1,3 @@
+---
+package_to_install: git
+ansible_connection: local
