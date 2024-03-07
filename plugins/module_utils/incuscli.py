@@ -46,9 +46,9 @@ class IncusClient(object):
         elif returncode != 0:
             raise IncusClientException('Error Exit {0}'.format(returncode), **err_params)
 
-    def _parsErrFromJson(self, json_data: Dict[str, Any], ok_errors: List[int]) -> Union[IncusClientException, None]:
+    def _parsErrFromJson(self, json_data: Dict[str, Any], ok_errors: Union[List[int], None]) -> Union[IncusClientException, None]:
         if json_data.get('type') == 'error':
-            if json_data['error_code'] in ok_errors:
+            if ok_errors and json_data['error_code'] in ok_errors:
                 return None
             else:
                 err_params = {'error_code': json_data['error_code']}
@@ -59,7 +59,7 @@ class IncusClient(object):
 
     def list(self, filter: str = '') -> List[Dict[str, Any]]:
         """List instances from Incus.
-        Returns a list of instances.
+        Returns a list of instances in a dict.
         """
         data = self._execute('list', '--format', 'json', filter)
         return json.loads(data)
