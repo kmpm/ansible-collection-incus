@@ -15,6 +15,7 @@ code used.
 
 ## External requirements
 All modules depend on a locally installed and configured `incus`CLI.
+That same incus CLI must have PR https://github.com/lxc/incus/pull/581 included. This probably means `incus > 0.6.0`.
 
 ## Using this collection
 The collection is not yet published in Ansible Galaxy but can be installed with
