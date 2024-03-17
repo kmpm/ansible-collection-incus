@@ -234,6 +234,7 @@ class IncusNetworkManagement(object):
                 'old_state': self.current_state,
                 'actions': self.actions,
                 'diff': self.diff,
+                'network': self.diff['after']['network'],
             }
             if self.debug:
                 result_json['logs'] = self.client.logs

@@ -29,13 +29,17 @@ options:
           - Name of an instance.
         type: str
         required: true
+    description:
+        description:
+            - Description of the instance
+        type: str
+        required: false
     project:
         description:
           - 'Project of an instance.
             See U(https://linuxcontainers.org/incus/docs/main/projects/).'
         required: false
         type: str
-        version_added: 4.8.0
     architecture:
         description:
           - 'The architecture for the instance (for example V(x86_64) or V(i686)).
@@ -62,7 +66,6 @@ options:
         type: bool
         required: false
         default: false
-        version_added: 3.7.0
     profiles:
         description:
           - Profile to be used by the instance.
@@ -109,7 +112,6 @@ options:
             The name should respond to same name of the node you see in C(incus cluster list).
         type: str
         required: false
-        version_added: 1.0.0
     timeout:
         description:
           - A timeout for changing the state of the instance.
@@ -128,7 +130,6 @@ options:
           - container
           - vm
         type: str
-        version_added: 4.1.0
     wait_for_ipv4_addresses:
         description:
           - If this is V(true), the C(incus_instance) waits until IPv4 addresses
@@ -143,7 +144,6 @@ options:
               success status when performing container operations.
         default: false
         type: bool
-        version_added: 4.4.0
     force_stop:
         description:
           - If this is V(true), the C(incus_instance) forces to stop the instance
@@ -367,7 +367,7 @@ ANSIBLE_INCUS_STATES = {
 
 # CONFIG_PARAMS is a list of config attribute names.
 CONFIG_PARAMS = [
-    'architecture', 'config', 'devices', 'ephemeral', 'profiles', 'source', 'type'
+    'description', 'architecture', 'config', 'devices', 'ephemeral', 'profiles', 'source', 'type'
 ]
 
 # CONFIG_CREATION_PARAMS is a list of attribute names that are only applied
@@ -652,6 +652,7 @@ class IncusInstanceManagement(object):
                 'old_state': self.old_state,
                 'actions': self.actions,
                 'diff': self.diff,
+                'instance': self.diff['after']['instance'],
             }
             if self.client.debug:
                 result_json['logs'] = self.client.logs
@@ -679,6 +680,9 @@ def main():
             name=dict(
                 type='str',
                 required=True,
+            ),
+            description=dict(
+                type='str',
             ),
             project=dict(
                 type='str',

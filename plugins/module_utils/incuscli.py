@@ -46,7 +46,7 @@ class IncusClient(object):
         elif returncode != 0:
             raise IncusClientException('Error Exit {0}'.format(returncode), **err_params)
 
-    def _parsErrFromJson(self, json_data: Dict[str, Any], ok_errors: Union[List[int], None]) -> Union[IncusClientException, None]:
+    def _parsErrFromJson(self, json_data, ok_errors = []):
         if json_data.get('type') == 'error':
             if ok_errors and json_data['error_code'] in ok_errors:
                 return None
@@ -56,13 +56,6 @@ class IncusClient(object):
                     err_params['logs'] = self.logs
                 raise IncusClientException(json_data['error'], **err_params)
         return None
-
-    def list(self, filter: str = '') -> List[Dict[str, Any]]:
-        """List instances from Incus.
-        Returns a list of instances in a dict.
-        """
-        data = self._execute('list', '--format', 'json', filter)
-        return json.loads(data)
 
     def query_raw(self,
                   method: str, url: str,
@@ -123,3 +116,61 @@ class IncusClient(object):
 
         self._parseErr(process.returncode, stderr)
         return stdout
+
+    def get_profile(self, name: str) -> Dict[str, Any]:
+        """Get a profile from Incus.
+        Returns the profile as a dict. If the profile does not exist, an empty dict is returned.
+        """
+        data = self.query_raw('GET', '/1.0/profiles/{0}'.format(name), ok_errors=[404])
+        data = data.get('metadata', {})
+        return data if bool(data) else {}
+
+    def profile_exists(self, name: str) -> bool:
+        """Check if a profile exists in Incus.
+        Returns True if the profile exists, False otherwise.
+        """
+        try:
+            return bool(self.get_profile(name))
+        except IncusClientException:
+            return False
+
+    def create_profile(self, name, description='', config=None, devices=None):
+        """Create a profile in Incus.
+        Returns True if the profile was created, False otherwise.
+        """
+        data = self.query_raw('POST', '/1.0/profiles', {
+            'name': name,
+            'description': description,
+            'config': config,
+            'devices': devices,
+        })
+        self._parsErrFromJson(data)
+        if data.get('status_code', 500) != 200:
+            raise IncusClientException('Failed to create profile', **data)
+
+    def update_profile(self, name, description='', config=None, devices=None):
+        """Update a profile in Incus.
+        Returns True if the profile was updated, False otherwise.
+        """
+        data = self.query_raw('PUT', '/1.0/profiles/{0}'.format(name), {
+            'description': description,
+            'config': config,
+            'devices': devices,
+        })
+        self._parsErrFromJson(data)
+        if data.get('status_code', 500) != 200:
+            raise IncusClientException('Failed to update profile', **data)
+
+    def delete_profile(self, name):
+        """Delete a profile from Incus."""
+        data = self.query_raw('DELETE', '/1.0/profiles/{0}'.format(name))
+        self._parsErrFromJson(data)
+        if data.get('status_code', 500) != 200:
+            raise IncusClientException('Failed to delete profile', **data)
+
+    def list(self, filter: str = '') -> List[Dict[str, Any]]:
+        """List instances from Incus.
+        Returns a list of instances in a dict.
+        """
+        data = self._execute('list', '--format', 'json', filter)
+        return json.loads(data)
