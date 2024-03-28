@@ -172,5 +172,5 @@ class IncusClient(object):
         """List instances from Incus.
         Returns a list of instances in a dict.
         """
-        data = self._execute('list', '--format', 'json', filter)
+        data = self._execute('list', '--project', self.project, '--format', 'json', filter)
         return json.loads(data)
