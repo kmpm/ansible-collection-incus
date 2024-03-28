@@ -292,6 +292,7 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
                 # FIXME: vlanid
                 self.inventory.set_variable(instance_name, 'ansible_incus_vlan_ids', None)
             if instance['type'] == 'container':
+                self.inventory.set_variable(instance_name, 'ansible_host', instance_name)
                 self.inventory.set_variable(instance_name, 'ansible_connection', 'community.general.incus')
             elif iface:
                 self.inventory.set_variable(instance_name, 'ansible_connection', 'ssh')
