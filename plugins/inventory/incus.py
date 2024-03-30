@@ -152,7 +152,7 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
                 return instance
         return KeyError(f"Instance {instance_name} not found")
 
-    def _get_network_addresses(self, instance_name: str) -> List[Dict[str, Any]]:
+    def _get_network_addresses(self, instance_name):
         """Get the interfaces for a given instance"""
         instance = self._get_instance(instance_name)
 
@@ -169,7 +169,7 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
                 rows.append(entry)
         return rows
 
-    def _get_interface(self, instance: Any):
+    def _get_interface(self, instance):
         network = instance['state']['network']
         self.display.vvv(f"Network: {network}")
         for name in network.keys():
@@ -194,7 +194,7 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
             if var_name in self.inventory.get_host(instance_name).get_vars():
                 self.inventory.add_child(group_name, instance_name)
 
-    def _build_group_from_var_equals(self, group_name: str, var_name: str, want: Any):
+    def _build_group_from_var_equals(self, group_name, var_name, want):
         if group_name not in self.inventory.groups:
             self.inventory.add_group(group_name)
         want = want.lower()
