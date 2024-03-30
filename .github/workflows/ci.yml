@@ -17,7 +17,7 @@ permissions:
 # please track https://github.com/ansible-collections/news-for-maintainers/issues/28
 
 jobs:
-  sanity:
+  'sanity-and-unit-testing':
 
     runs-on: ubuntu-latest
 
@@ -38,10 +38,10 @@ jobs:
       - name: Perform unit testing with ansible-test
         uses: ansible-community/ansible-test-gh-action@release/v1
         with:
-          ansible-core-version: stable-2.26
+          ansible-core-version: stable-2.16
           # pre-test-cmd: echo This runs before the ansible-test invocation
-          target-python-version: 3.11
+          # target-python-version: 3.11
           testing-type: units
-          test-deps: >-
-            ansible.netcommon
-            ansible.utils
+          # test-deps: >-
+          #   ansible.netcommon
+          #   ansible.utils
