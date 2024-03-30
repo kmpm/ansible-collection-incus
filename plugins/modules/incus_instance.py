@@ -430,7 +430,7 @@ class IncusInstanceManagement(object):
 
     def _get_instance_state_json(self):
         url = '{0}/{1}/state'.format(self.api_endpoint, self.name)
-        return self.client.query_raw('GET', url, ok_error_codes=[404])
+        return self.client.query_raw('GET', url, ok_errors=[404])
 
     @staticmethod
     def _instance_json_to_module_state(resp_json):
