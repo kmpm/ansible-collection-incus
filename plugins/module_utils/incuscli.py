@@ -32,7 +32,6 @@ class IncusClient(object):
         self.target = target
         self.logs = []
 
-
         self._incus_cmd = get_bin_path("incus")
         if not self._incus_cmd:
             raise IncusClientException("incus command not found in PATH")
@@ -47,7 +46,7 @@ class IncusClient(object):
         elif returncode != 0:
             raise IncusClientException('Error Exit {0}'.format(returncode), **err_params)
 
-    def _parsErrFromJson(self, json_data, ok_errors = []):
+    def _parsErrFromJson(self, json_data, ok_errors=None):
         if json_data.get('type') == 'error':
             if ok_errors and json_data['error_code'] in ok_errors:
                 return None

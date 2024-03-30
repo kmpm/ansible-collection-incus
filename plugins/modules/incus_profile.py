@@ -67,7 +67,6 @@ from ansible_collections.kmpm.incus.plugins.module_utils.incuscli import IncusCl
 RESOURCE_PARAMS = ['name', 'description', 'config', 'devices', 'state']
 
 
-
 def clean_resource(resource, **defaults):
     out = {}
     if 'config' not in defaults or not bool(defaults['config']):
@@ -146,7 +145,7 @@ class IncusProfileManagement(object):
         self.current = self._get_current()
         self.current_state = 'present' if bool(self.current) else 'absent'
         self.diff = {
-            'before':clean_resource(self.current, state=self.current_state),
+            'before': clean_resource(self.current, state=self.current_state),
             'after': clean_resource({}, state=self.state)}
         result = dict(
             changed=False,
@@ -180,7 +179,7 @@ def main():
             description=dict(type='str', required=False),
             config=dict(type='dict', required=False, default={}),
             devices=dict(type='dict', required=False, default={}),
-            state=dict(type='str', choices=['present', 'absent'], default='present'),
+            state=dict(type='str', choices=['present', 'updated', 'absent'], default='present'),
         ),
         supports_check_mode=True
 

@@ -40,6 +40,7 @@ options:
             See U(https://linuxcontainers.org/incus/docs/main/projects/).'
         required: false
         type: str
+        default: default
     architecture:
         description:
           - 'The architecture for the instance (for example V(x86_64) or V(i686)).
