@@ -54,7 +54,6 @@ DOCUMENTATION = r'''
 
 import traceback
 import re
-from typing import List, Dict, Any
 from ansible.errors import AnsibleError, AnsibleParserError
 from ansible.module_utils.common.text.converters import to_native, to_text
 from ansible.module_utils.common.yaml import yaml_load
@@ -101,7 +100,7 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
         self.display.vvv(f"{path} is not a valid file or does not end with incus.yml or incus.yaml")
         return False
 
-    def parse(self, inventory: Any, loader: Any, path: Any, cache: bool = True) -> Any:
+    def parse(self, inventory, loader, path, cache=True):
         if IPADDRESS_IMPORT_ERROR:
             raise_from(
                 AnsibleError('another_library must be installed to use this plugin'),
@@ -125,8 +124,8 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
         self._populate()
 
     def _populate(self):
-        cli = IncusClient(remote='local', project=self.project, debug=True)
         if len(self.data) == 0:
+            cli = IncusClient(remote='local', project=self.project, debug=True)
             self.data = cli.list()
             self.display.vvv(f"Inventory data: {self.data}")
         # TODO: filtering
@@ -145,7 +144,7 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
 
         self.data = [instance for instance in self.data if keep_instance(instance)]
 
-    def _get_instance(self, instance_name: str) -> Dict[str, Any]:
+    def _get_instance(self, instance_name):
         '''Get instance by name'''
         for instance in self.data:
             if instance['name'] == instance_name:
