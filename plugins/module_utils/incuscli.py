@@ -7,7 +7,6 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
-from typing import List, Dict, Any, Union
 import json
 from subprocess import Popen, PIPE
 from ansible.module_utils.common.process import get_bin_path
@@ -57,12 +56,7 @@ class IncusClient(object):
                 raise IncusClientException(json_data['error'], **err_params)
         return None
 
-    def query_raw(self,
-                  method: str, url: str,
-                  payload: Union[Dict[str, Any], None] = None,
-                  url_params: Union[Dict[str, Any], None] = None,
-                  ok_errors: Union[List[int], None] = None
-                  ) -> Union[Dict[str, Any], None]:
+    def query_raw(self, method, url, payload=None, url_params=None, ok_errors=None):
         """Query Incus API.
         Returns the response as a dict.
         """
@@ -117,7 +111,7 @@ class IncusClient(object):
         self._parseErr(process.returncode, stderr)
         return stdout
 
-    def get_profile(self, name: str) -> Dict[str, Any]:
+    def get_profile(self, name):
         """Get a profile from Incus.
         Returns the profile as a dict. If the profile does not exist, an empty dict is returned.
         """
@@ -125,7 +119,7 @@ class IncusClient(object):
         data = data.get('metadata', {})
         return data if bool(data) else {}
 
-    def profile_exists(self, name: str) -> bool:
+    def profile_exists(self, name):
         """Check if a profile exists in Incus.
         Returns True if the profile exists, False otherwise.
         """
@@ -168,7 +162,7 @@ class IncusClient(object):
         if data.get('status_code', 500) != 200:
             raise IncusClientException('Failed to delete profile', **data)
 
-    def list(self, filter: str = '') -> List[Dict[str, Any]]:
+    def list(self, filter):
         """List instances from Incus.
         Returns a list of instances in a dict.
         """
