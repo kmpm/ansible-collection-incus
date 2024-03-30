@@ -27,10 +27,11 @@ class IncusClientException(Exception):
 class IncusClient(object):
     def __init__(self, remote='local', project='default', target=None, debug=False, *args, **kwargs):
         self.debug = debug
-        self.remote = remote
-        self.project = project
+        self.remote = remote if remote else 'local'
+        self.project = project if project else 'default'
         self.target = target
         self.logs = []
+
 
         self._incus_cmd = get_bin_path("incus")
         if not self._incus_cmd:

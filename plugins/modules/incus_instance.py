@@ -367,7 +367,7 @@ ANSIBLE_INCUS_STATES = {
 
 # CONFIG_PARAMS is a list of config attribute names.
 CONFIG_PARAMS = [
-    'description', 'architecture', 'config', 'devices', 'ephemeral', 'profiles', 'source', 'type'
+    'name', 'description', 'architecture', 'config', 'devices', 'ephemeral', 'profiles', 'source', 'type'
 ]
 
 # CONFIG_CREATION_PARAMS is a list of attribute names that are only applied
@@ -424,8 +424,8 @@ class IncusInstanceManagement(object):
         url = '{0}/{1}'.format(self.api_endpoint, self.name)
         try:
             return self.client.query_raw('GET', url)
-        except IncusClientException:
-            return {'type': 'error'}
+        except IncusClientException as ex:
+            return {'type': 'error', 'error': ex.msg}
 
     def _get_instance_state_json(self):
         url = '{0}/{1}/state'.format(self.api_endpoint, self.name)
@@ -686,6 +686,7 @@ def main():
             ),
             project=dict(
                 type='str',
+                default='default',
             ),
             architecture=dict(
                 type='str',
