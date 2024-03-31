@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: Python application
+name: Ansible Collection CI
 
 on:
   pull_request:
@@ -22,26 +22,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: kmpm.incus
+
+      # https://github.com/ansible/ansible/issues/72634
+      - name: Checkout community.general dependency
+        uses: actions/checkout@v4
+        with:
+          repository: ansible-collections/community.general
+          path: ansible_collections/community/general
+
+      - name: create a fake incus cli for use in later testing
+        run: |
+          echo '#!/bin/bash' > /usr/local/bin/incus
+          echo 'echo "incus is currently a fake"' >> /usr/local/bin/incus
+          echo 'exit 1' >> /usr/local/bin/incus
+          chmod +x /usr/local/bin/incus
+
       - name: Perform sanity testing with ansible-test
         uses: ansible-community/ansible-test-gh-action@release/v1
         with:
           # start off with 2.16 and then close in to what https://github.com/ansible-collections/community.general is using
           ansible-core-version: stable-2.16
           testing-type: sanity
+          collection-src-directory: kmpm.incus
       
-      - name: create a fake incus cli and test it
-        run: |
-          echo '#!/bin/bash' > /usr/local/bin/incus
-          echo 'echo "incus is currently a fake"' >> /usr/local/bin/incus
-          chmod +x /usr/local/bin/incus
-
       - name: Perform unit testing with ansible-test
         uses: ansible-community/ansible-test-gh-action@release/v1
         with:
           ansible-core-version: stable-2.16
-          # pre-test-cmd: echo This runs before the ansible-test invocation
-          # target-python-version: 3.11
           testing-type: units
+          collection-src-directory: kmpm.incus
+          # pre-test-cmd: |
+          #   cd ../.. ; pwd ; tree -d
+          # target-python-version: 3.11
           # test-deps: >-
           #   ansible.netcommon
           #   ansible.utils

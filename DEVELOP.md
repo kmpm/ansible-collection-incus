@@ -1,5 +1,24 @@
 # Developing the collection
 
+```shell
+# create a working directory for ansible collections
+mkdir ansible_collections
+
+# checkout this repository to an appropriate location
+git clone https://github.com/kmpm/ansible-collection-incus.git ansible_collection/kmpm/incus
+
+# check out any other collections that we are depending upon
+git clone https://github.com/ansible-collections/community.general.git ansible_collections/community/general
+```
+
+Create a `ansible.cfg` that matches what you just cloned
+
+```ini
+[defaults]
+collections_paths = ansible_collections
+```
+
+
 ## Recommended reading
 - https://www.redhat.com/sysadmin/ansible-dynamic-inventory-python
 - https://www.redhat.com/sysadmin/ansible-plugin-inventory-files
