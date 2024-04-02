@@ -1,0 +1,33 @@
+{
+    "type": "sync",
+    "status": "Success",
+    "status_code": 200,
+    "operation": "",
+    "error_code": 0,
+    "error": "",
+    "metadata": {
+            "id": "<guid-like-id>",
+            "class": "task",
+            "description": "Creating instance",
+            "created_at": "2024-11-28T23:11:49.303545747+01:00",
+            "updated_at": "2024-11-28T23:11:50.724932671+01:00",
+            "status": "Success",
+            "status_code": 200,
+            "resources": {
+                    "instances": [
+                            "/1.0/instances/testinstance"
+                    ]
+            },
+            "metadata": {
+                    "create_instance_from_image_unpack_progress": "Unpacking image: 100% (3.97GB/s)",
+                    "progress": {
+                            "percent": "100",
+                            "speed": "3972972972",
+                            "stage": "create_instance_from_image_unpack"
+                    }
+            },
+            "may_cancel": false,
+            "err": "",
+            "location": "none"
+    }
+}

@@ -1,0 +1,28 @@
+{
+    "type": "sync",
+    "status": "Success",
+    "status_code": 200,
+    "operation": "",
+    "error_code": 0,
+    "error": "",
+    "metadata": {
+            "status": "Stopped",
+            "status_code": 102,
+            "disk": {},
+            "memory": {
+                    "usage": 0,
+                    "usage_peak": 0,
+                    "total": 0,
+                    "swap_usage": 0,
+                    "swap_usage_peak": 0
+            },
+            "network": null,
+            "pid": 0,
+            "processes": 0,
+            "cpu": {
+                    "usage": 0
+            },
+            "started_at": "0001-01-01T00:00:00Z",
+            "os_info": null
+    }
+}
