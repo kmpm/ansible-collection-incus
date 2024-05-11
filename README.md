@@ -3,10 +3,13 @@ This repository contains the `kmpm.incus` collection.
 The goal for this collection is to eventually be incorporated
 into Ansibles community.general collection.
 
+The module connection module for incus is already included in the `community.general` connection and is not included here.
+
 ## Disclaimer
 It is very much a Work In Progress and contains bugs, missing features etc.
 It might destroy everything on your machine (unlikely) and delete everyting
-in incus (somewhat likely).
+in incus (somewhat likely). It will eventually be strict about semver versioning but for
+not every change could be a breaking one.
 
 ## Tested with Ansible
 This collection is currently only tested with core-2.16 and python 3.11.
