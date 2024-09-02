@@ -162,7 +162,7 @@ class IncusClient(object):
         if data.get('status_code', 500) != 200:
             raise IncusClientException('Failed to delete profile', **data)
 
-    def list(self, filter):
+    def list(self, filter=''):
         """List instances from Incus.
         Returns a list of instances in a dict.
         """
