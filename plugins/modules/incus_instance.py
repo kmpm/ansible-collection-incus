@@ -6,6 +6,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 
@@ -345,8 +346,8 @@ import datetime
 import time
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.kmpm.incus.plugins.module_utils.incuscli import IncusClient, IncusClientException
-
+from ansible_collections.kmpm.incus.plugins.module_utils.incuscli import (
+    IncusClient, IncusClientException)
 
 # INCUS_ANSIBLE_STATES is a map of states that contain values of methods used
 # when a particular state is evoked.
@@ -726,7 +727,7 @@ def main():
             type=dict(
                 type='str',
                 default='container',
-                choices=['container', 'vm'],
+                choices=['container', 'virtual-machine'],
             ),
             wait_for_container=dict(
                 type='bool',
