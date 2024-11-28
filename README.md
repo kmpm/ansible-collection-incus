@@ -27,8 +27,12 @@ All modules depend on a locally installed and configured `incus`CLI.
 That same incus CLI must have PR https://github.com/lxc/incus/pull/581 included. This means `incus > 0.6.0`.
 
 ## Using this collection
-The collection is not yet published in Ansible Galaxy but can be installed with
-`ansible-galaxy collection install git+https://github.com/kmpm/ansible-collection-incus.git
+The collection is not yet published in Ansible Galaxy but can be installed with `ansible-galaxy`
+and using the [git repository](https://github.com/kmpm/ansible-collection-incus).
+
+```shell
+ansible-galaxy collection install git+https://github.com/kmpm/ansible-collection-incus.git
+```
 
 ### Modules
 
