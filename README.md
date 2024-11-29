@@ -87,7 +87,7 @@ ansible-galaxy collection install git+https://github.com/kmpm/ansible-collection
 
 ### Inventory
 
-WIP: There is an inventory module but it has limited documentation and not
+WIP: There is an inventory module but it has limited documentation and not 
 everything planed is complete or implemented.
 
 Get the existing help with `ansible-doc -t inventory kmpm.incus.incus`
