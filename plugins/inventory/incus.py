@@ -20,6 +20,9 @@ DOCUMENTATION = r'''
         description: Name of the plugin
         required: true
         choices: ['kmpm.incus.incus']
+      remote:
+        description: The remote to use for the Incus CLI.
+        default: local
       project:
         description: The name of the Incus project to use (per C(incus project list)).
         default: default
@@ -108,8 +111,10 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
 
         super(InventoryModule, self).parse(inventory, loader, path, cache)
         self._read_config_data(path)
+        # self.display.vvv(f"incus.parse: path={path}")
         try:
             self.plugin = self.get_option('plugin')
+            self.remote = self.get_option('remote')
             self.project = self.get_option('project')
             self.type_filter = self.get_option('type_filter')
             self.state_filter = self.get_option('state_filter')
@@ -124,8 +129,10 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
         self._populate()
 
     def _populate(self):
+        '''Populate the inventory'''
+        # self.display.vvv(f"incus._populate: project={self.project}, remote={self.remote}")
         if len(self.data) == 0:
-            cli = IncusClient(remote='local', project=self.project, debug=True)
+            cli = IncusClient(remote=self.remote, project=self.project, debug=True)
             self.data = cli.list()
             self.display.vvv(f"Inventory data: {self.data}")
         # TODO: filtering
@@ -156,6 +163,7 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
         instance = self._get_instance(instance_name)
 
         networks = instance['state']['network']
+        self.display.vvv(f"Incus Networks: {networks}")
         rows = []
         for iface in networks.keys():
             base = {
@@ -170,7 +178,10 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
 
     def _get_interface(self, instance):
         network = instance['state']['network']
-        self.display.vvv(f"Network: {network}")
+        self.display.vvv(f"Network: {network} for state {instance['state']}")
+        if not network:
+            return None
+
         for name in network.keys():
             if name.startswith(self.prefered_instance_network_interface):
                 for adr in network[name]['addresses']:
@@ -273,6 +284,12 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
     def build_inventory_hosts(self):
         for instance in self.data:
             instance_name = instance['name']
+            # TODO: validate nessessary data like network interfaces
+            iface = self._get_interface(instance)
+            if instance['type'] != 'container' and not iface:
+                self.display.warning(f"Instance '{instance_name}' excluded, has no network interface and is type '{instance['type']}'")
+                continue
+
             self.inventory.add_host(instance_name)
             instance_type = instance['type']
             instance_status = instance['status'].lower()
@@ -285,11 +302,11 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
             self.inventory.set_variable(instance_name, 'ansible_incus_os', self._get_config_value(instance, 'image.os'))
             self.inventory.set_variable(instance_name, 'ansible_incus_release', self._get_config_value(instance, 'image.release'))
 
-            iface = self._get_interface(instance)
             if iface:
                 self.inventory.set_variable(instance_name, 'ansible_host', iface['address'])
                 # FIXME: vlanid
                 self.inventory.set_variable(instance_name, 'ansible_incus_vlan_ids', None)
+
             if instance['type'] == 'container':
                 self.inventory.set_variable(instance_name, 'ansible_host', instance_name)
                 self.inventory.set_variable(instance_name, 'ansible_connection', 'community.general.incus')
