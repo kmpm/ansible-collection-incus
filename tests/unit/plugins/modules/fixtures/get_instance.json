@@ -1,0 +1,74 @@
+{
+    "type": "sync",
+    "status": "Success",
+    "status_code": 200,
+    "operation": "",
+    "error_code": 0,
+    "error": "",
+    "metadata": {
+            "architecture": "aarch64",
+            "config": {
+                    "image.architecture": "arm64",
+                    "image.description": "Debian bookworm arm64 (20241128_05:24)",
+                    "image.os": "Debian",
+                    "image.release": "bookworm",
+                    "image.serial": "20241128_05:24",
+                    "image.type": "squashfs",
+                    "image.variant": "cloud",
+                    "volatile.apply_template": "create",
+                    "volatile.base_image": "5bfec5b4d6362bbf8755f637119ac3de7c15ca267573e47c9873388a5655e196",
+                    "volatile.cloud-init.instance-id": "4f144556-ea4c-4154-8a57-91ff4346e5e1",
+                    "volatile.eth0.hwaddr": "00:16:3e:9a:00:37",
+                    "volatile.idmap.base": "0",
+                    "volatile.idmap.next": "[{\"Isuid\":true,\"Isgid\":false,\"Hostid\":1000000,\"Nsid\":0,\"Maprange\":1000000000},{\"Isuid\":false,\"Isgid\":true,\"Hostid\":1000000,\"Nsid\":0,\"Maprange\":1000000000}]",
+                    "volatile.last_state.idmap": "[]",
+                    "volatile.uuid": "321b7285-2c66-4b62-924b-0c47d61ea7a0",
+                    "volatile.uuid.generation": "321b7285-2c66-4b62-924b-0c47d61ea7a0"
+            },
+            "devices": {},
+            "ephemeral": false,
+            "profiles": [
+                    "default"
+            ],
+            "stateful": false,
+            "description": "",
+            "created_at": "2024-11-28T22:11:50.701255415Z",
+            "expanded_config": {
+                    "image.architecture": "arm64",
+                    "image.description": "Debian bookworm arm64 (20241128_05:24)",
+                    "image.os": "Debian",
+                    "image.release": "bookworm",
+                    "image.serial": "20241128_05:24",
+                    "image.type": "squashfs",
+                    "image.variant": "cloud",
+                    "volatile.apply_template": "create",
+                    "volatile.base_image": "5bfec5b4d6362bbf8755f637119ac3de7c15ca267573e47c9873388a5655e196",
+                    "volatile.cloud-init.instance-id": "4f144556-ea4c-4154-8a57-91ff4346e5e1",
+                    "volatile.eth0.hwaddr": "00:16:3e:9a:00:37",
+                    "volatile.idmap.base": "0",
+                    "volatile.idmap.next": "[{\"Isuid\":true,\"Isgid\":false,\"Hostid\":1000000,\"Nsid\":0,\"Maprange\":1000000000},{\"Isuid\":false,\"Isgid\":true,\"Hostid\":1000000,\"Nsid\":0,\"Maprange\":1000000000}]",
+                    "volatile.last_state.idmap": "[]",
+                    "volatile.uuid": "321b7285-2c66-4b62-924b-0c47d61ea7a0",
+                    "volatile.uuid.generation": "321b7285-2c66-4b62-924b-0c47d61ea7a0"
+            },
+            "expanded_devices": {
+                    "eth0": {
+                            "name": "eth0",
+                            "network": "incusbr0",
+                            "type": "nic"
+                    },
+                    "root": {
+                            "path": "/",
+                            "pool": "default",
+                            "type": "disk"
+                    }
+            },
+            "name": "<some-instance-name>",
+            "status": "Stopped",
+            "status_code": 102,
+            "last_used_at": "1970-01-01T00:00:00Z",
+            "location": "none",
+            "type": "<some-instance-type>",
+            "project": "<some-instance-project>"
+    }
+}
