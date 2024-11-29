@@ -23,17 +23,17 @@ DOCUMENTATION = r'''
       remote:
         description: The remote to use for the Incus CLI.
         default: local
-      project:
-        description: The name of the Incus project to use (per C(incus project list)).
-        default: default
+      project_filter:
+        description: Filter the instances by Incus project (per C(incus project list)).
+        default: all
       type_filter:
         description:
           - Filter the instances by type V(virtual-machine), V(container) or V(all).
         type: str
         default: all
         choices: [ 'virtual-machine', 'container', 'all' ]
-      state_filter:
-        description: Filter the instances by state V(running), V(stopped) or V(all).
+      status_filter:
+        description: Filter the instances by status V(running), V(stopped) or V(all).
         type: str
         default: running
         choices: [ 'running', 'stopped', 'all' ]
@@ -46,9 +46,22 @@ DOCUMENTATION = r'''
         choices: [ 'inet', 'inet6' ]
       groupby:
         description:
-        - Create groups by the following keywords C(location), C(network_range), C(os), C(pattern), C(profile), C(release), C(type), C(vlanid).
+        - Create groups by the following keywords C(project), C(location), C(network_range), C(os), C(pattern), C(profile), C(release), C(type), C(vlanid).
         - See example for syntax.
         type: dict
+'''
+
+EXAMPLES = r'''
+# Example minimal inventory file incus.yml
+plugin: kmpm.incus.incus
+
+# Example inventory file incus.yml default options
+plugin: kmpm.incus.incus
+remote: local
+project_filter: all
+type_filter: all
+status_filter: running
+prefered_instance_network_family: inet
 '''
 
 import traceback
@@ -111,9 +124,9 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
         try:
             self.plugin = self.get_option('plugin')
             self.remote = self.get_option('remote')
-            self.project = self.get_option('project')
+            self.project_filter = self.get_option('project_filter')
             self.type_filter = self.get_option('type_filter')
-            self.state_filter = self.get_option('state_filter')
+            self.status_filter = self.get_option('status_filter')
             # TODO: self.prefered_instance_network_interface = self.get_option('prefered_instance_network_interface')
             self.prefered_instance_network_family = self.get_option('prefered_instance_network_family')
             self.groupby = self.get_option('groupby')
@@ -195,12 +208,14 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
         except KeyError:
             return None
 
-    def _build_group_from_var(self, group_name, var_name):
-        if group_name not in self.inventory.groups:
-            self.inventory.add_group(group_name)
-
+    def _build_group_from_var(self, var_name, group_prefix):
         for instance_name in self.inventory.hosts:
             if var_name in self.inventory.get_host(instance_name).get_vars():
+                group_name = self.inventory.get_host(instance_name).get_vars().get(var_name)
+                if group_prefix:
+                    group_name = group_prefix + group_name
+                if group_name not in self.inventory.groups:
+                    self.inventory.add_group(group_name)
                 self.inventory.add_child(group_name, instance_name)
 
     def _build_group_from_var_equals(self, group_name, var_name, want):
@@ -259,6 +274,7 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
             'profile': 'ansible_incus_profiles',
             'release': 'ansible_incus_release',
             'type': 'ansible_incus_type',
+            'project': 'ansible_incus_project',
 
             'pattern': self._build_group_from_pattern,
             'network_range': self._build_group_from_network_range,
@@ -269,38 +285,58 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
             for group_name in self.groupby:
                 if not group_name.isalnum():
                     raise AnsibleParserError('Invalid character(s) in groupname: {0}'.format(to_native(group_name)))
-                group_type = self.groupby[group_name].get('type')
+
+                if self.groupby[group_name]:
+                    group_type = self.groupby[group_name].get('type', group_name)
+                else:
+                    group_type = group_name
+
                 if group_type not in groupmap:
                     raise AnsibleParserError('Invalid group type: {0}'.format(to_native(group_type)))
                 group_var = groupmap[group_type]
                 if callable(group_var):
                     group_var(group_name, self.groupby[group_name].get('attribute'))
                     continue
-                group_value = self.groupby[group_name].get('attribute')
-                # TODO: possibly leave attribute empty and group without equals
-                self._build_group_from_var_equals(group_name, group_var, group_value)
+                if self.groupby[group_name]:
+                    group_value = self.groupby[group_name].get('attribute')
+                    group_prefix = self.groupby[group_name].get('prefix')
+                else:
+                    group_value = None
+                    group_prefix = None
+
+                if group_value:
+                    self._build_group_from_var_equals(group_name, group_var, group_value)
+                else:
+                    self._build_group_from_var(group_var, group_prefix)
 
     def build_inventory_hosts(self):
         for instance in self.data:
             instance_name = instance['name']
+            instance_type = instance['type']
+            instance_project = instance['project']
+            instance_status = instance['status'].lower()
+
             self.display.vvv(f'Processing instance {instance_name}:\n {instance}')
-            if self.type_filter != 'all' and instance['type'] != self.type_filter:
-                self.display.v(f'Instance "{instance_name}" excluded, type "{instance["type"]}" does not match filter')
+            if self.type_filter != 'all' and instance_type != self.type_filter:
+                self.display.v(f'Instance "{instance_name}" excluded, type "{instance_type}" does not match filter')
                 continue
 
+            if self.project_filter != 'all' and instance_project != self.project_filter:
+                self.display.v(f'Instance "{instance_name}" excluded, project "{instance_project}" does not match filter')
+                continue
+            if self.status_filter != 'all' and instance_status != self.status_filter:
+                self.display.v(f'Instance "{instance_name}" excluded, status "{instance_status}" does not match filter')
+                continue
             # TODO: more filtering
 
-            # TODO: validate nessessary data like network interfaces
             iface = self._get_interface(instance)
-            if instance['type'] != 'container' and not iface:
-                self.display.warning(f'Instance "{instance_name}" excluded, has no network interface and is type "{instance["type"]}"')
+            if instance_type != 'container' and not iface:
+                self.display.warning(f'Instance "{instance_name}" excluded, has no network interface and is type "{instance_type}"')
                 continue
 
             self.inventory.add_host(instance_name)
-            instance_type = instance['type']
-            instance_status = instance['status'].lower()
             self.inventory.set_variable(instance_name, 'ansible_incus_type', instance_type)
-            self.inventory.set_variable(instance_name, 'ansible_incus_project', instance['project'])
+            self.inventory.set_variable(instance_name, 'ansible_incus_project', instance_project)
             self.inventory.set_variable(instance_name, 'ansible_incus_status', instance_status)
             self.inventory.set_variable(instance_name, 'ansible_incus_profiles', instance['profiles'])
             self.inventory.set_variable(instance_name, 'ansible_incus_location', instance['location'])

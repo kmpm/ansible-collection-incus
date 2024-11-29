@@ -47,8 +47,9 @@ def inventory():
     inv.groupby = GROUP_Config
     inv.prefered_instance_network_interface = 'eth'
     inv.prefered_instance_network_family = 'inet'
-    inv.state_filter = 'running'
+    inv.status_filter = 'running'
     inv.type_filter = 'all'
+    inv.project_filter = 'all'
     inv.dump_data = False
 
     return inv
