@@ -37,10 +37,6 @@ DOCUMENTATION = r'''
         type: str
         default: running
         choices: [ 'running', 'stopped', 'all' ]
-      prefered_instance_network_interface:
-        description: The name of the network interface to use for the ansible_host variable.
-        type: str
-        default: eth
       prefered_instance_network_family:
         description:
           - The network family to use for the ansible_host variable.
@@ -118,7 +114,7 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
             self.project = self.get_option('project')
             self.type_filter = self.get_option('type_filter')
             self.state_filter = self.get_option('state_filter')
-            self.prefered_instance_network_interface = self.get_option('prefered_instance_network_interface')
+            # TODO: self.prefered_instance_network_interface = self.get_option('prefered_instance_network_interface')
             self.prefered_instance_network_family = self.get_option('prefered_instance_network_family')
             self.groupby = self.get_option('groupby')
             self.debug = self.DEBUG
@@ -178,16 +174,19 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
 
     def _get_interface(self, instance):
         network = instance['state']['network']
-        self.display.vvv(f'Network: {network} for state {instance["state"]}')
         if not network:
+            self.display.vvv(f'warning: no "network" in state: {instance["state"]}')
             return None
 
         for name in network.keys():
-            if name.startswith(self.prefered_instance_network_interface):
-                for adr in network[name]['addresses']:
-                    if adr['family'] == self.prefered_instance_network_family:
-                        adr['name'] = name
-                        return adr
+            self.display.vvv(f'processing interface {name}: {network[name]}')
+            # TODO: if name.startswith(self.prefered_instance_network_interface):
+            for adr in network[name]['addresses']:
+                # pick global address of prefered family
+                if adr['scope'] == 'global' and adr['family'] == self.prefered_instance_network_family:
+                    adr['name'] = name
+                    return adr
+        self.display.vvv(f'warning: no usable interface found for {instance["name"]}')
         return None
 
     def _get_config_value(self, instance, key):
