@@ -10,11 +10,11 @@ DOCUMENTATION = r'''
     name: incus
     short_description: Incus inventory source
     description:
-      - Reads inventory from Incus using the Incus Command Line Interface (CLI).
-      - Uses a file that ends with C(incus.yml) or C(incus.yaml).
+      - Reads inventory from Incus using the Incus Command Line Interface (CLI)
+      - and requires the Incus CLI to be installed.
+      - Must use a inventory file that ends with C(incus.yml) or C(incus.yaml).
     requirements:
         - ipaddress
-        - incus CLI installed
     options:
       plugin:
         description: Name of the plugin
@@ -100,7 +100,7 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
         '''Return true/false if this is possibly the correct source handler for the file'''
         if super(InventoryModule, self).verify_file(path):
             return path.endswith(('incus.yml', 'incus.yaml'))
-        self.display.vvv(f"{path} is not a valid file or does not end with incus.yml or incus.yaml")
+        self.display.vvv(f'{path} is not a valid file or does not end with incus.yml or incus.yaml')
         return False
 
     def parse(self, inventory, loader, path, cache=True):
@@ -111,7 +111,7 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
 
         super(InventoryModule, self).parse(inventory, loader, path, cache)
         self._read_config_data(path)
-        # self.display.vvv(f"incus.parse: path={path}")
+        # self.display.vvv(f'incus.parse: path={path}')
         try:
             self.plugin = self.get_option('plugin')
             self.remote = self.get_option('remote')
@@ -124,17 +124,17 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
             self.debug = self.DEBUG
             self.data = {}
         except KeyError as kerr:
-            raise AnsibleParserError(f"Missing required configuration parameter: {kerr}")
+            raise AnsibleParserError(f'Missing required configuration parameter: {kerr}')
 
         self._populate()
 
     def _populate(self):
         '''Populate the inventory'''
-        # self.display.vvv(f"incus._populate: project={self.project}, remote={self.remote}")
+        # self.display.vvv(f'incus._populate: project={self.project}, remote={self.remote}')
         if len(self.data) == 0:
             cli = IncusClient(remote=self.remote, project=self.project, debug=True)
             self.data = cli.list()
-            self.display.vvv(f"Inventory data: {self.data}")
+            self.display.vvv(f'Inventory data: {self.data}')
         # TODO: filtering
         self.build_inventory()
 
@@ -156,14 +156,14 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
         for instance in self.data:
             if instance['name'] == instance_name:
                 return instance
-        return KeyError(f"Instance {instance_name} not found")
+        return KeyError(f'Instance {instance_name} not found')
 
     def _get_network_addresses(self, instance_name):
-        """Get the interfaces for a given instance"""
+        '''Get the interfaces for a given instance'''
         instance = self._get_instance(instance_name)
 
         networks = instance['state']['network']
-        self.display.vvv(f"Incus Networks: {networks}")
+        self.display.vvv(f'Incus Networks: {networks}')
         rows = []
         for iface in networks.keys():
             base = {
@@ -178,7 +178,7 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
 
     def _get_interface(self, instance):
         network = instance['state']['network']
-        self.display.vvv(f"Network: {network} for state {instance['state']}")
+        self.display.vvv(f'Network: {network} for state {instance["state"]}')
         if not network:
             return None
 
@@ -241,7 +241,7 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
         try:
             network = ipaddress.ip_network(network_range)
         except ValueError as e:
-            raise AnsibleParserError(f"Invalid network range: {e}")
+            raise AnsibleParserError(f'Invalid network range: {e}')
 
         for instance_name in self.inventory.hosts:
             rows = self._get_network_addresses(instance_name)
@@ -287,7 +287,7 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
             # TODO: validate nessessary data like network interfaces
             iface = self._get_interface(instance)
             if instance['type'] != 'container' and not iface:
-                self.display.warning(f"Instance '{instance_name}' excluded, has no network interface and is type '{instance['type']}'")
+                self.display.warning(f'Instance "{instance_name}" excluded, has no network interface and is type "{instance["type"]}"')
                 continue
 
             self.inventory.add_host(instance_name)
