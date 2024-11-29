@@ -14,6 +14,7 @@ from ansible_collections.kmpm.incus.plugins.inventory.incus import InventoryModu
 HOST_COMPARATIVE_DATA = {
     'ansible_connection': 'community.general.incus', 'ansible_host': 'vlantest', 'ansible_incus_os': 'Debian',
     'ansible_incus_release': 'bookworm', 'ansible_incus_profiles': ['default'],
+    'ansible_incus_project': 'default',
     'ansible_incus_status': 'running', 'ansible_incus_location': 'Berlin',
     'inventory_hostname': 'vlantest', 'inventory_hostname_short': 'vlantest'
     # FIXME: 'ansible_incus_vlan_ids': {'my-macvlan': 666},

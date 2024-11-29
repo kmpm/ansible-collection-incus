@@ -300,6 +300,7 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
             instance_type = instance['type']
             instance_status = instance['status'].lower()
             self.inventory.set_variable(instance_name, 'ansible_incus_type', instance_type)
+            self.inventory.set_variable(instance_name, 'ansible_incus_project', instance['project'])
             self.inventory.set_variable(instance_name, 'ansible_incus_status', instance_status)
             self.inventory.set_variable(instance_name, 'ansible_incus_profiles', instance['profiles'])
             self.inventory.set_variable(instance_name, 'ansible_incus_location', instance['location'])
