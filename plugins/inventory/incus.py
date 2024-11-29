@@ -30,8 +30,8 @@ DOCUMENTATION = r'''
         description:
           - Filter the instances by type V(virtual-machine), V(container) or V(all).
         type: str
-        default: container
-        choices: [ 'vm', 'container', 'all' ]
+        default: all
+        choices: [ 'virtual-machine', 'container', 'all' ]
       state_filter:
         description: Filter the instances by state V(running), V(stopped) or V(all).
         type: str
@@ -130,8 +130,8 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
         if len(self.data) == 0:
             cli = IncusClient(remote=self.remote, project=self.project, debug=True)
             self.data = cli.list()
-            self.display.vvv(f'Inventory data: {self.data}')
-        # TODO: filtering
+            # self.display.vvv(f'Inventory data: {self.data}')
+
         self.build_inventory()
 
     def _cleandata(self):
@@ -283,6 +283,13 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
     def build_inventory_hosts(self):
         for instance in self.data:
             instance_name = instance['name']
+            self.display.vvv(f'Processing instance {instance_name}:\n {instance}')
+            if self.type_filter != 'all' and instance['type'] != self.type_filter:
+                self.display.v(f'Instance "{instance_name}" excluded, type "{instance["type"]}" does not match filter')
+                continue
+
+            # TODO: more filtering
+
             # TODO: validate nessessary data like network interfaces
             iface = self._get_interface(instance)
             if instance['type'] != 'container' and not iface:
