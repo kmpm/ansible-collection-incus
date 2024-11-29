@@ -1,0 +1,26 @@
+{
+    "type": "sync",
+    "status": "Success",
+    "status_code": 200,
+    "operation": "",
+    "error_code": 0,
+    "error": "",
+    "metadata": {
+            "id": "b9958a0e-842f-4a7c-8b30-14b9b4065cf0",
+            "class": "task",
+            "description": "Starting instance",
+            "created_at": "2024-11-29T13:58:31.07329825+01:00",
+            "updated_at": "2024-11-29T13:58:31.07329825+01:00",
+            "status": "Success",
+            "status_code": 200,
+            "resources": {
+                    "instances": [
+                            "/1.0/instances/testinstance"
+                    ]
+            },
+            "metadata": null,
+            "may_cancel": false,
+            "err": "",
+            "location": "none"
+    }
+}
