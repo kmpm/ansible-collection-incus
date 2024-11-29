@@ -74,16 +74,19 @@ class IncusInstanceTestCase(ModuleTestCase):
         print("result", result)
         self.assertTrue(result['changed'], result)
 
-    # def test_started_vm(self):
-    #     set_module_args({
-    #         'name': 'testvm',
-    #         'state': 'started',
-    #         'source': {
-    #             'type': 'image',
-    #             'alias': 'debian/12/cloud',
-    #             'server': "https://images.linuxcontainers.org",
-    #             'protocol': "simplestreams",
-    #             'mode': "pull",
-    #         },
-    #         'type': 'virtual-machine',
-    #     })
+    def test_started_vm(self):
+        set_module_args({
+            'name': 'testvm',
+            'state': 'started',
+            'source': {
+                'type': 'image',
+                'alias': 'debian/12/cloud',
+                'server': "https://images.linuxcontainers.org",
+                'protocol': "simplestreams",
+                'mode': "pull",
+            },
+            'type': 'virtual-machine',
+        })
+        result = self.module_main(AnsibleExitJson)
+        print("result", result)
+        self.assertTrue(result['changed'], result)
