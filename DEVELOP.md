@@ -15,7 +15,7 @@ Create a `ansible.cfg` that matches what you just cloned
 
 ```ini
 [defaults]
-collections_paths = ansible_collections
+collections_path = ansible_collections
 ```
 
 
