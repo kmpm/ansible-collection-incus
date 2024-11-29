@@ -18,19 +18,23 @@ Create a `ansible.cfg` that matches what you just cloned
 collections_path = ansible_collections
 ```
 
-
 ## Recommended reading
+
 - https://www.redhat.com/sysadmin/ansible-dynamic-inventory-python
 - https://www.redhat.com/sysadmin/ansible-plugin-inventory-files
 - https://github.com/zestyping/q
+- https://termlen0.github.io/2019/11/16/observations/
 
 ### If you are using vscode
+
 - [Medium - Guide to writing and debugging ansible modules in vscode](https://medium.com/@tushe_33516/guide-to-writing-and-debugging-ansible-modules-in-vscode-a-nearly-perfect-setup-ad54024a466a)
 - [GH - Sample Project for debugging with vscode](https://github.com/troshlyak/vscode_ansible)
 
 
 ## Testing
+
 ### Using ansible-doc
+
 ```shell
 # Does ansible recognize the inventory plugin
 $ ansible-doc -t inventory -l | grep incus
