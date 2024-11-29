@@ -1,3 +1,4 @@
+PYVER?=3.11
 
 usage:
 	@echo "Usage: make [clean|test]"
@@ -23,10 +24,10 @@ test: test/sanity test/units
 .PHONY: test/sanity
 test/sanity:
 	@echo "Running sanity tests"
-	ansible-test sanity --python 3.11 -v
+	ansible-test sanity --python $(PYVER) -v
 
 
 .PHONY: test/units
 test/units:
 	@echo "Running unit tests"
-	ansible-test units --venv --python 3.11
+	ansible-test units --venv --python $(PYVER) -v
