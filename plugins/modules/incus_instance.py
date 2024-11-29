@@ -125,12 +125,12 @@ options:
         type: int
     type:
         description:
-          - Instance type can be either V(vm) or V(container).
+          - Instance type can be either V(virtual-machine) or V(container).
         required: false
         default: container
         choices:
           - container
-          - vm
+          - virtual-machine
         type: str
     wait_for_ipv4_addresses:
         description:
