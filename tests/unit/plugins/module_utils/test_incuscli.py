@@ -14,7 +14,7 @@ except ImportError:
     from mock import patch
 
 # from ansible_collections.community.general.tests.unit.compat.mock import patch
-from ansible_collections.kmpm.incus.plugins.module_utils.incuscli import IncusClient
+from ansible_collections.kmpm.incus.plugins.module_utils.incuscli import IncusClient, ensure_remote
 
 
 @patch("ansible_collections.kmpm.incus.plugins.module_utils.incuscli.get_bin_path", side_effect=ValueError('boom'))
@@ -32,3 +32,10 @@ def test_instanciation(_get_bin_path):
     client = IncusClient()
     _get_bin_path.assert_called_once()
     assert client is not None
+
+
+def test_ensure_remote():
+    assert ensure_remote('local') == 'local:'
+    assert ensure_remote('local:') == 'local:'
+    with pytest.raises(ValueError):
+        ensure_remote('loc al')
