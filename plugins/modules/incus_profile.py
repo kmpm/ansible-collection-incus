@@ -20,6 +20,10 @@ options:
             - Name of the profile
         type: str
         required: true
+    remote:
+        description: The remote to use for the Incus CLI.
+        type: str
+        default: local
     project:
         description:
             - Project to manage the profile in
@@ -86,13 +90,15 @@ def clean_resource(resource, **defaults):
 class IncusProfileManagement(object):
     def __init__(self, module):
         self.module = module
-        self.client = IncusClient(module.params['project'])
-
+        self.remote = self.module.params['remote']
+        self.project = module.params['project']
         self.name = self.module.params['name']
         self.description = self.module.params['description']
         self.config = self.module.params['config']
         self.devices = self.module.params['devices']
         self.state = self.module.params['state']
+
+        self.client = IncusClient(project=self.project, remote=self.remote)
         self.actions = []
 
     def _get_current(self):
@@ -175,6 +181,7 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
             name=dict(type='str', required=True),
+            remote=dict(type='str', default='local'),
             project=dict(type='str', default='default'),
             description=dict(type='str', required=False),
             config=dict(type='dict', required=False, default={}),

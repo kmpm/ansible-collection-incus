@@ -20,6 +20,10 @@ options:
             - Name of the network
         type: str
         required: true
+    remote:
+        description: The remote to use for the Incus CLI.
+        type: str
+        default: local
     project:
         description:
             - Project to manage the network in
@@ -259,6 +263,7 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
             name=dict(type='str', required=True),
+            remote=dict(type='str', default='local'),
             project=dict(type='str', default='default'),
             description=dict(type='str', required=False),
             config=dict(type='dict', required=False),

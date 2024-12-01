@@ -23,6 +23,10 @@ options:
             - Name of the network. If empty all networks will be returned.
         type: str
         required: false
+    remote:
+        description: The remote to use for the Incus CLI.
+        type: str
+        default: local
     project:
         description:
             - Project to get network information from
@@ -84,8 +88,9 @@ class IncusNetworkInfo(object):
         self.name = module.params['name']
         self.project = module.params['project']
         self.target = module.params['target']
+        self.remote = module.params['remote']
 
-        self.client = IncusClient(project=self.project, target=self.target)
+        self.client = IncusClient(project=self.project, target=self.target, remote=self.remote)
         self.api_endpoint = '/1.0/networks'
         self.logs = []
 
@@ -145,6 +150,7 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
             name=dict(type='str', required=False),
+            remote=dict(type='str', default='local'),
             project=dict(type='str', default='default'),
             target=dict(type='str', required=False),
         ),

@@ -23,6 +23,10 @@ options:
             - Name of the instance. If empty all instances will be returned.
         type: str
         required: false
+    remote:
+        description: The remote to use for the Incus CLI.
+        type: str
+        default: local
     project:
         description:
             - Project to get network information from
@@ -89,10 +93,11 @@ class IncusInstanceInfo(object):
     def __init__(self, module):
         self.module = module
         self.name = module.params['name']
+        self.remote = module.params['remote']
         self.project = module.params['project']
         self.target = module.params['target']
 
-        self.client = IncusClient(project=self.project, target=self.target)
+        self.client = IncusClient(project=self.project, target=self.target, remote=self.remote)
         self.api_endpoint = '/1.0/instances'
         self.logs = []
 
@@ -152,6 +157,7 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
             name=dict(type='str', required=False),
+            remote=dict(type='str', default='local'),
             project=dict(type='str', default='default'),
             target=dict(type='str', required=False),
         ),
