@@ -8,10 +8,25 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import json
+import re
 from subprocess import Popen, PIPE
 from ansible.module_utils.common.process import get_bin_path
 from ansible.module_utils._text import to_bytes, to_text
 from ansible.module_utils.six.moves.urllib.parse import urlencode
+
+
+validRemote = re.compile(r'^[a-zA-Z0-9]*[:]*$')
+
+
+def ensure_remote(remote):
+    """Ensure remote is in the correct format."""
+    # check for only alphanumeric characters and no whitespace
+    if not validRemote.match(remote):
+        raise ValueError('Remote must be alphanumeric and not contain whitespace')
+
+    if remote and not remote.endswith(':'):
+        return remote + ':'
+    return remote
 
 
 class IncusClientException(Exception):
@@ -34,10 +49,6 @@ class IncusClient(object):
         self._incus_cmd = get_bin_path("incus")
         if not self._incus_cmd:
             raise IncusClientException("incus command not found in PATH")
-
-    def _remoteCmd(self, cmd):
-        """Return the command with the remote set."""
-        return [cmd, self.remote + ':']
 
     def _parseErr(self, returncode, stderr):
         err_params = {"rc": returncode}
@@ -74,8 +85,8 @@ class IncusClient(object):
             url = url + '&' + urlencode(url_params)
         else:
             url = url + '?' + urlencode(url_params)
-        if self.remote != 'local':
-            url = self.remote + ':' + url
+
+        url = ensure_remote(self.remote) + url
         args = ['query', '-X', method, url, '--wait', '--raw']
         if self.debug:
             self.logs.append(args)
@@ -172,7 +183,7 @@ class IncusClient(object):
         Returns a list of instances in a dict.
         """
         # syntax: incus list [<remote>:] [<filter>...] [flags]
-        args = self._remoteCmd('list')
+        args = ['list', ensure_remote(self.remote)]
         if filter:
             args.extend([filter, ]),
         args.extend(['--project', self.project, '--format', 'json'])
