@@ -166,5 +166,12 @@ class IncusClient(object):
         """List instances from Incus.
         Returns a list of instances in a dict.
         """
-        data = self._execute('list', '--project', self.project, '--format', 'json', filter)
+        # syntax: incus list [<remote>:] [<filter>...] [flags]
+        args=['list',]
+        if self.remote:
+            args.extend([self.remote + ':',])
+        if filter:
+            args.extend([filter, ]),
+        args.extend(['--project', self.project, '--format', 'json'])
+        data = self._execute(*args)
         return json.loads(data)
