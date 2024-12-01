@@ -35,6 +35,10 @@ class IncusClient(object):
         if not self._incus_cmd:
             raise IncusClientException("incus command not found in PATH")
 
+    def _remoteCmd(self, cmd):
+        """Return the command with the remote set."""
+        return [cmd, self.remote + ':']
+
     def _parseErr(self, returncode, stderr):
         err_params = {"rc": returncode}
         if self.debug:
@@ -70,7 +74,8 @@ class IncusClient(object):
             url = url + '&' + urlencode(url_params)
         else:
             url = url + '?' + urlencode(url_params)
-
+        if self.remote != 'local':
+            url = self.remote + ':' + url
         args = ['query', '-X', method, url, '--wait', '--raw']
         if self.debug:
             self.logs.append(args)
@@ -167,9 +172,7 @@ class IncusClient(object):
         Returns a list of instances in a dict.
         """
         # syntax: incus list [<remote>:] [<filter>...] [flags]
-        args=['list',]
-        if self.remote:
-            args.extend([self.remote + ':',])
+        args = self._remoteCmd('list')
         if filter:
             args.extend([filter, ]),
         args.extend(['--project', self.project, '--format', 'json'])

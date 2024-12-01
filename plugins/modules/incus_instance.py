@@ -30,6 +30,10 @@ options:
           - Name of an instance.
         type: str
         required: true
+    remote:
+        description: The remote to use for the Incus CLI.
+        type: str
+        default: local
     description:
         description:
             - Description of the instance
@@ -387,6 +391,8 @@ class IncusInstanceManagement(object):
         self.module = module
         self.name = self.module.params['name']
         self.project = self.module.params['project']
+        self.description = self.module.params['description']
+        self.remote = self.module.params['remote']
         self._build_config()
 
         self.state = self.module.params['state']
@@ -405,6 +411,7 @@ class IncusInstanceManagement(object):
         try:
             self.client = IncusClient(
                 project=self.project,
+                remote=self.remote,
                 debug=self.debug
             )
         except IncusClientException as e:
@@ -682,6 +689,10 @@ def main():
             name=dict(
                 type='str',
                 required=True,
+            ),
+            remote=dict(
+                type='str',
+                default='local',
             ),
             description=dict(
                 type='str',
