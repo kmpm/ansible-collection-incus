@@ -184,8 +184,16 @@ class IncusClient(object):
         """
         # syntax: incus list [<remote>:] [<filter>...] [flags]
         args = ['list', ensure_remote(self.remote)]
+
         if filter:
             args.extend([filter, ]),
-        args.extend(['--project', self.project, '--format', 'json'])
+
+        if self.project == 'all':
+            args.extend(['--all-projects'])
+        else:
+            args.extend(['--project', self.project])
+
+        args.extend(['--format', 'json'])
+
         data = self._execute(*args)
         return json.loads(data)
