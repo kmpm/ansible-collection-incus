@@ -13,7 +13,7 @@ from subprocess import Popen, PIPE
 from ansible.module_utils.common.process import get_bin_path
 from ansible.module_utils._text import to_bytes, to_text
 from ansible.module_utils.six.moves.urllib.parse import urlencode
-
+from ansible.module_utils.common.dict_transformations import dict_merge, recursive_diff
 
 validRemote = re.compile(r'^[a-zA-Z0-9]*[:]*$')
 
@@ -100,6 +100,12 @@ class IncusClient(object):
         self._parsErrFromJson(json_data, ok_errors)
 
         return json_data
+
+    def query_raw_checked(self, method, url, payload=None, url_params=None, ok_errors=None):
+        data = self.query_raw(method, url, payload=payload, url_params=url_params, ok_errors=ok_errors)
+        if data.get('status_code', 500) != 200:
+            raise IncusClientException('Failed to create profile', **data)
+        return data
 
     def _execute(self, *args):
         """Execute incus command."""
@@ -189,3 +195,44 @@ class IncusClient(object):
         args.extend(['--project', self.project, '--format', 'json'])
         data = self._execute(*args)
         return json.loads(data)
+
+    def get_storage(self, name):
+        """Get a profile from Incus.
+        Returns the profile as a dict. If the profile does not exist, an empty dict is returned.
+        """
+        data = self.query_raw('GET', '/1.0/storage-pools/{0}'.format(name), ok_errors=[404])
+        data = data.get('metadata', {})
+        return data if bool(data) else {}
+
+
+class Patch:
+    def __init__(self, *, current, supported_fields, patch, next_state):
+        self.prev_state = 'absent' if len(current) == 0 else 'present'
+        self.next_state = next_state
+        self.before = {k: v for k, v in current.items() if k in supported_fields}
+        self.after = dict_merge(self.before, {k: v for k, v in patch.items() if v is not None})
+        self.payload = self.after.copy()
+        self.before["state"] = self.prev_state
+        self.after["state"] = self.next_state
+        diff = recursive_diff(self.before, self.after)
+        self.diff = diff[1] if diff else {}
+        self.changed = diff is not None
+
+    def is_created(self):
+        return self.next_state == 'present' and self.prev_state == 'absent'
+
+    def is_updated(self):
+        return self.next_state == 'present' and self.prev_state == 'present' and self.changed
+
+    def is_deleted(self):
+        return self.next_state == 'absent' and self.prev_state == 'present'
+
+    def result(self, **extra):
+        r = {
+            'changed': self.changed,
+            'before': self.before,
+            'after': self.after,
+            'diff': self.diff,
+        }
+        r.update(extra)
+        return r

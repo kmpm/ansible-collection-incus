@@ -1,0 +1,54 @@
+---
+- name: Pick a storage name
+  ansible.builtin.set_fact:
+    storage_name: "{{ lookup('ansible.builtin.password', '/dev/null chars=ascii_letters length=10') }}"
+
+- name: Create storage without driver
+  kmpm.incus.incus_storage:
+    name: "{{ storage_name }}"
+    config:
+      size: 1GiB
+      rsync.compression: "false"
+  ignore_errors: true
+  register: create_result_with_driver
+
+- name: Create storage
+  kmpm.incus.incus_storage:
+    name: "{{ storage_name }}"
+    description: foobar
+    driver: lvm
+    config:
+      size: 1GiB
+      rsync.compression: "false"
+  register: create_result
+
+- name: Update storage with driver
+  kmpm.incus.incus_storage:
+    name: "{{ storage_name }}"
+    description: "{{ storage_name }}.updated"
+    driver: dir
+  ignore_errors: true
+  register: update_result_with_driver
+
+- name: Update storage
+  kmpm.incus.incus_storage:
+    name: "{{ storage_name }}"
+    description: "{{ storage_name }}.updated"
+    config:
+      size: 2GiB
+  register: update_result
+
+- name: Destroy storage
+  kmpm.incus.incus_storage:
+    name: "{{ storage_name }}"
+    state: absent
+  register: destroy_result
+
+- name: Verify results
+  ansible.builtin.assert:
+    that:
+      - create_result_with_driver.failed
+      - not create_result.failed
+      - update_result_with_driver.failed
+      - not update_result.failed
+      - not destroy_result.failed
