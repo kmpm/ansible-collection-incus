@@ -93,11 +93,11 @@ options:
     source:
         description:
           - 'The source for the instance
-            (for example V({ "type": "image", "mode": "pull", "server": "https://images.linuxcontainers.org",
-            "protocol": "lxd", "alias": "ubuntu/xenial/amd64" })).'
+            (for example V({ "alias": "ubuntu/xenial/amd64" })).'
           - 'See U(https://linuxcontainers.org/incus/docs/main/rest-api/) for complete API documentation.'
           - 'Note that C(protocol) accepts two choices: V(lxd) or V(simplestreams).'
         required: false
+        default: {'type': 'image', 'mode': 'pull', 'server': 'https://images.linuxcontainers.org', 'protocol': 'simplestreams', 'alias':''}
         type: dict
     state:
         choices:
@@ -423,11 +423,23 @@ class IncusInstanceManagement(object):
         self.old_sections = {}
 
     def _build_config(self):
-        self.config = {}
+        self.config = {
+            'source': {
+                'server': 'https://images.linuxcontainers.org',
+                'protocol': 'simplestreams',
+                'type': 'image',
+                'mode': 'pull',
+                'allow_inconsistent': False,
+            }
+        }
         for attr in CONFIG_PARAMS:
             param_val = self.module.params.get(attr, None)
             if param_val is not None:
-                self.config[attr] = param_val
+                # merge the with the default config if the attribute exists in the default config and is a dict
+                if attr in self.config and isinstance(self.config[attr], dict) and isinstance(param_val, dict):
+                    self.config[attr].update(param_val)
+                else:
+                    self.config[attr] = param_val
 
     def _get_instance_json(self):
         url = '{0}/{1}'.format(self.api_endpoint, self.name)
