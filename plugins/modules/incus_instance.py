@@ -102,6 +102,7 @@ options:
     state:
         choices:
           - started
+          - running
           - stopped
           - restarted
           - absent
@@ -357,6 +358,7 @@ from ansible_collections.kmpm.incus.plugins.module_utils.incuscli import (
 # when a particular state is evoked.
 INCUS_ANSIBLE_STATES = {
     'started': '_started',
+    'running': '_started',
     'stopped': '_stopped',
     'restarted': '_restarted',
     'absent': '_destroyed',
