@@ -283,9 +283,6 @@ class InventoryModule(BaseInventoryPlugin, Cacheable, Constructable):
 
         if self.groupby:
             for group_name in self.groupby:
-                if not group_name.isalnum():
-                    raise AnsibleParserError('Invalid character(s) in groupname: {0}'.format(to_native(group_name)))
-
                 if self.groupby[group_name]:
                     group_type = self.groupby[group_name].get('type', group_name)
                 else:
